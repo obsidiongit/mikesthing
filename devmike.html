@@ -95,6 +95,29 @@
   .pin-error { font-size: 12px; color: var(--error); margin-top: 10px; min-height: 1.2em; }
   .pin-card .pin-actions { margin-top: 24px; }
   .pin-hint { font-size: 11px; color: var(--dim); margin-top: 20px; line-height: 1.5; }
+  .pin-loading { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+  .pin-setup-intro { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+  .pin-gate-cloud {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .pin-gate-cloud summary { cursor: pointer; color: var(--text); font-weight: 500; margin-bottom: 10px; }
+  .pin-gate-cloud input {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 13px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .pin-gate-cloud input:focus { outline: none; border-color: var(--white); }
+  .pin-gate-cloud .btn { margin-top: 6px; width: 100%; }
+  #gate-sync-error { margin-top: 8px; min-height: 1.2em; }
 
   /* ── Buttons ──────────────────────────────── */
   .btn {
@@ -551,10 +574,9 @@
 </head>
 <body>
 <!--
-  Devmike — internal task list. Client-side PIN is not real security.
-  PIN is stored in localStorage. Default fallback: DEVMIKE_PIN_DEFAULT constant below.
+  Devmike — internal task list. Access code is stored locally and copied with cloud sync / backup JSON.
   Press N to quick-add a task. Drag handles to reorder.
-  Optional Cloud sync (Supabase): same sync ID + URL/key on each device; data is not encrypted at rest on Supabase.
+  Optional Cloud sync (Supabase): same sync ID + URL/key on each device; not encrypted at rest on Supabase.
 -->
 
 <!-- PIN gate -->
@@ -562,13 +584,36 @@
   <div class="pin-card">
     <h1>Devmike</h1>
     <div class="pin-brand">Obsidion · internal</div>
-    <label for="pin-input">Access code (4 digits)</label>
-    <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
-    <p class="pin-error" id="pin-error"></p>
-    <div class="pin-actions">
-      <button type="button" class="btn btn-primary" id="pin-submit">Continue</button>
+    <p id="pin-gate-loading" class="pin-loading hidden">Checking cloud…</p>
+    <div id="pin-unlock-wrap" class="hidden">
+      <label for="pin-input">Access code (4 digits)</label>
+      <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+      <p class="pin-error" id="pin-error"></p>
+      <div class="pin-actions">
+        <button type="button" class="btn btn-primary" id="pin-submit">Continue</button>
+      </div>
     </div>
-    <p class="pin-hint">PIN keeps casual visitors out only. Anyone with the file can read it — rotate periodically.</p>
+    <div id="pin-setup-wrap" class="hidden">
+      <p class="pin-setup-intro">No access code on this device yet. Choose one — with cloud sync it is stored in your backup so all devices match.</p>
+      <label for="pin-setup-a">New code</label>
+      <input type="password" id="pin-setup-a" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+      <label for="pin-setup-b" style="margin-top:14px">Confirm</label>
+      <input type="password" id="pin-setup-b" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+      <p class="pin-error" id="pin-setup-error"></p>
+      <div class="pin-actions">
+        <button type="button" class="btn btn-primary" id="pin-setup-btn">Save &amp; continue</button>
+      </div>
+    </div>
+    <details class="pin-gate-cloud">
+      <summary>New device — load code from cloud</summary>
+      <p class="pin-hint" style="margin-top:10px;margin-bottom:12px">Same Supabase URL, anon key, and sync ID as in the app. Loads your access code (and enables sync here).</p>
+      <input type="url" id="gate-sync-url" placeholder="https://xxxx.supabase.co" autocomplete="off">
+      <input type="password" id="gate-sync-key" placeholder="Supabase anon key" autocomplete="off">
+      <input type="text" id="gate-sync-id" placeholder="Sync ID" autocomplete="off" spellcheck="false">
+      <button type="button" class="btn btn-primary" id="gate-sync-load">Load from cloud</button>
+      <p class="pin-error" id="gate-sync-error"></p>
+    </details>
+    <p class="pin-hint">Anyone with your public URL cannot guess a code. With cloud sync, your code travels with your data — protect your sync ID like a password.</p>
   </div>
 </div>
 
@@ -797,8 +842,6 @@ create policy "devmike_rw" on devmike_sync
 /* ──────────────────────────────────────────────
    Constants & Storage
    ────────────────────────────────────────────── */
-const DEVMIKE_PIN_DEFAULT = '1234';
-
 const STORAGE_TASKS = 'devmike_tasks_v1';
 const STORAGE_STATE = 'devmike_state_v1';
 const STORAGE_TRASH = 'devmike_trash_v1';
@@ -814,8 +857,33 @@ const STORAGE_SYNC_AUTO        = 'devmike_sync_auto';
 const STORAGE_SYNC_LAST_REMOTE = 'devmike_sync_last_remote_ts';
 const STORAGE_SYNC_DIRTY       = 'devmike_sync_dirty';
 
-function getPin()  { return localStorage.getItem(STORAGE_PIN) || DEVMIKE_PIN_DEFAULT; }
-function setPin(p) { localStorage.setItem(STORAGE_PIN, p); }
+function getStoredPin() {
+  const p = localStorage.getItem(STORAGE_PIN);
+  return p && /^\d{4}$/.test(p) ? p : null;
+}
+function setPin(p) {
+  const d = String(p || '').replace(/\D/g, '');
+  if (d.length === 4) localStorage.setItem(STORAGE_PIN, d);
+}
+
+async function prefetchGatePinFromCloud() {
+  const c = getSyncConfig();
+  if (!c) return;
+  try {
+    const u = `${c.url}/rest/v1/devmike_sync?id=eq.${encodeURIComponent(c.id)}&select=payload`;
+    const r = await fetch(u, { headers: { apikey: c.key, Authorization: `Bearer ${c.key}` } });
+    if (!r.ok) return;
+    const rows = await r.json();
+    if (!Array.isArray(rows) || !rows[0] || !rows[0].payload) return;
+    const pin = rows[0].payload.pin;
+    if (typeof pin === 'string' && /^\d{4}$/.test(pin)) setPin(pin);
+  } catch (e) {}
+}
+
+function applyPinFromPayload(data) {
+  if (!data || typeof data.pin !== 'string' || !/^\d{4}$/.test(data.pin)) return;
+  setPin(data.pin);
+}
 
 const DEFAULT_TASK_DATA = { priority: [], active: [], later: [] };
 function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
@@ -893,12 +961,15 @@ function clearSyncDirty() {
 }
 
 function buildCloudPayload() {
-  return {
+  const o = {
     _version: 1,
     tasks: deepClone(TASK_DATA),
     state: deepClone(state),
     trash: loadTrash()
   };
+  const pin = getStoredPin();
+  if (pin) o.pin = pin;
+  return o;
 }
 
 function applyCloudPayload(data) {
@@ -911,6 +982,7 @@ function applyCloudPayload(data) {
   localStorage.setItem(STORAGE_TASKS, JSON.stringify(TASK_DATA));
   localStorage.setItem(STORAGE_STATE, JSON.stringify(state));
   localStorage.setItem(STORAGE_TRASH, JSON.stringify(tr));
+  applyPinFromPayload(data);
   clearSyncDirty();
   return true;
 }
@@ -1667,13 +1739,20 @@ function savePinModal() {
   const confirm = document.getElementById('pin-confirm').value.replace(/\D/g,'');
   const errEl   = document.getElementById('pin-modal-error');
   errEl.textContent = '';
-  if (current !== getPin()) {
+  const cur = getStoredPin();
+  if (!cur) {
+    errEl.textContent = 'No access code on file. Lock and set one at the gate.';
+    return;
+  }
+  if (current !== cur) {
     errEl.textContent = 'Current PIN is incorrect.';
     document.getElementById('pin-current').value = ''; return;
   }
   if (next.length !== 4) { errEl.textContent = 'New PIN must be exactly 4 digits.'; return; }
   if (next !== confirm)  { errEl.textContent = 'PINs do not match.'; document.getElementById('pin-confirm').value = ''; return; }
   setPin(next); closePinModal();
+  markSyncDirty();
+  scheduleCloudPush();
   const btn = document.getElementById('btn-change-pin');
   const orig = btn.textContent;
   btn.textContent = 'PIN saved ✓';
@@ -1691,6 +1770,8 @@ function exportData() {
     state: deepClone(state),
     trash: loadTrash()
   };
+  const pin = getStoredPin();
+  if (pin) payload.pin = pin;
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const url  = URL.createObjectURL(blob);
   const a    = document.createElement('a');
@@ -1714,6 +1795,9 @@ function importData(file) {
       state     = data.state || { done: {} };
       saveTaskData(); saveState();
       if (Array.isArray(data.trash)) saveTrash(data.trash);
+      applyPinFromPayload(data);
+      markSyncDirty();
+      scheduleCloudPush();
       render();
       alert('Import complete!');
     } catch(err) {
@@ -1726,12 +1810,86 @@ function importData(file) {
 /* ──────────────────────────────────────────────
    PIN gate
    ────────────────────────────────────────────── */
+function showPinGateUnlock() {
+  document.getElementById('pin-unlock-wrap').classList.remove('hidden');
+  document.getElementById('pin-setup-wrap').classList.add('hidden');
+}
+
+function showPinGateSetup() {
+  document.getElementById('pin-unlock-wrap').classList.add('hidden');
+  document.getElementById('pin-setup-wrap').classList.remove('hidden');
+  document.getElementById('pin-setup-a').value = '';
+  document.getElementById('pin-setup-b').value = '';
+  document.getElementById('pin-setup-error').textContent = '';
+  setTimeout(() => document.getElementById('pin-setup-a').focus(), 30);
+}
+
+async function initPinGate() {
+  const loading = document.getElementById('pin-gate-loading');
+  loading.classList.remove('hidden');
+  document.getElementById('pin-unlock-wrap').classList.add('hidden');
+  document.getElementById('pin-setup-wrap').classList.add('hidden');
+  await prefetchGatePinFromCloud();
+  loading.classList.add('hidden');
+  if (!getStoredPin()) showPinGateSetup();
+  else showPinGateUnlock();
+}
+
+function tryPinSetup() {
+  const a = document.getElementById('pin-setup-a').value.replace(/\D/g, '');
+  const b = document.getElementById('pin-setup-b').value.replace(/\D/g, '');
+  const err = document.getElementById('pin-setup-error');
+  err.textContent = '';
+  if (a.length !== 4) { err.textContent = 'Code must be 4 digits.'; return; }
+  if (a !== b) { err.textContent = 'Codes do not match.'; return; }
+  setPin(a);
+  markSyncDirty();
+  scheduleCloudPush();
+  sessionStorage.setItem(SESSION_KEY, '1');
+  document.getElementById('pin-gate').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  bootApp();
+}
+
+async function gateLoadCloudAndPin() {
+  const url = document.getElementById('gate-sync-url').value.trim();
+  const key = document.getElementById('gate-sync-key').value.trim();
+  const id = document.getElementById('gate-sync-id').value.trim();
+  const errEl = document.getElementById('gate-sync-error');
+  errEl.textContent = '';
+  if (!url || !key || !id) {
+    errEl.textContent = 'Enter URL, anon key, and sync ID.';
+    return;
+  }
+  localStorage.setItem(STORAGE_SYNC_URL, url);
+  localStorage.setItem(STORAGE_SYNC_KEY, key);
+  localStorage.setItem(STORAGE_SYNC_ID, id);
+  if (!localStorage.getItem(STORAGE_SYNC_AUTO)) localStorage.setItem(STORAGE_SYNC_AUTO, '1');
+  localStorage.removeItem(STORAGE_SYNC_LAST_REMOTE);
+  errEl.textContent = 'Loading…';
+  await prefetchGatePinFromCloud();
+  errEl.textContent = '';
+  if (!getStoredPin()) {
+    errEl.textContent = 'No access code in this cloud row yet. Create one on your first device, push, then try again.';
+    return;
+  }
+  showPinGateUnlock();
+  errEl.textContent = 'Code loaded. Enter it above to continue.';
+  document.getElementById('pin-input').value = '';
+  document.getElementById('pin-input').focus();
+}
+
 function tryUnlock() {
-  const raw = document.getElementById('pin-input').value.replace(/\D/g,'');
+  const raw = document.getElementById('pin-input').value.replace(/\D/g, '');
   const err = document.getElementById('pin-error');
   err.textContent = '';
   if (raw.length !== 4) { err.textContent = 'Enter all 4 digits.'; return; }
-  if (raw !== getPin()) {
+  const expected = getStoredPin();
+  if (!expected) {
+    err.textContent = 'No code on this device — use “Save & continue” or load from cloud.';
+    return;
+  }
+  if (raw !== expected) {
     err.textContent = 'Invalid code.';
     document.getElementById('pin-input').value = ''; return;
   }
@@ -1861,6 +2019,9 @@ function bootApp() {
 // PIN gate
 document.getElementById('pin-submit').addEventListener('click', tryUnlock);
 document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+document.getElementById('pin-setup-btn').addEventListener('click', tryPinSetup);
+document.getElementById('pin-setup-b').addEventListener('keydown', e => { if (e.key === 'Enter') tryPinSetup(); });
+document.getElementById('gate-sync-load').addEventListener('click', () => gateLoadCloudAndPin());
 
 // Task modal
 document.getElementById('modal-task-cancel').addEventListener('click', closeTaskModal);
@@ -1989,6 +2150,8 @@ if (sessionStorage.getItem(SESSION_KEY) === '1') {
   document.getElementById('pin-gate').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
   bootApp();
+} else {
+  initPinGate();
 }
 </script>
 </body>
