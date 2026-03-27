@@ -381,6 +381,83 @@
   .task-row.paccent-high   { border-left-color: #d97834; }
   .task-row.paccent-urgent { border-left-color: #c44; }
 
+  .prio-pill.prio-none {
+    background: #1a1a1a;
+    color: #6a6a6a;
+    border: 1px solid var(--border);
+  }
+
+  /* Inline meta dropdowns (Notion-style) */
+  .meta-dropdown { position: relative; display: inline-block; vertical-align: middle; }
+  .meta-dropdown.open { z-index: 80; }
+  .meta-dropdown-trigger {
+    font-family: var(--font);
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 3px 18px 3px 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    position: relative;
+    max-width: 100%;
+    text-align: left;
+    line-height: 1.3;
+  }
+  .meta-dropdown-trigger::after {
+    content: '▾';
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 9px;
+    opacity: 0.65;
+    pointer-events: none;
+  }
+  .meta-dropdown-trigger.prio-pill { letter-spacing: 0.05em; }
+  .meta-dropdown-panel {
+    display: none;
+    position: absolute;
+    left: 0;
+    top: calc(100% + 4px);
+    min-width: 168px;
+    max-width: min(240px, 70vw);
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    box-shadow: 0 12px 32px rgba(0,0,0,0.55);
+    padding: 4px 0;
+    z-index: 90;
+  }
+  .meta-dropdown.open .meta-dropdown-panel { display: block; }
+  .meta-dropdown-option {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    font-family: var(--font);
+    font-size: 12px;
+    font-weight: 500;
+    border: none;
+    background: transparent;
+    color: var(--text);
+    cursor: pointer;
+    gap: 8px;
+  }
+  .meta-dropdown-option:hover { background: var(--surface2); }
+  .meta-dropdown-option.active { background: #252525; color: var(--white); }
+  .meta-dropdown-option-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    flex-shrink: 0;
+    padding: 0 !important;
+    min-width: 8px !important;
+    box-sizing: border-box;
+    border: none !important;
+  }
+  .meta-dropdown-option-dot.prio-pill { border: 1px solid transparent !important; }
+
   .task-sub { font-size: 13px; color: var(--muted); line-height: 1.45; margin-top: 4px; }
 
   .task-actions {
@@ -1213,6 +1290,139 @@ function normalizeTaskPrio(t) {
   return TASK_PRIOS.includes(p) ? p : 'none';
 }
 
+function closeAllMetaDropdowns() {
+  document.querySelectorAll('.meta-dropdown.open').forEach(w => {
+    w.classList.remove('open');
+    const b = w.querySelector('.meta-dropdown-trigger');
+    if (b) b.setAttribute('aria-expanded', 'false');
+  });
+}
+
+function updateTaskField(taskId, field, value) {
+  const found = findTaskAndCategory(taskId);
+  if (!found) return;
+  if (field === 'status' && TASK_STATUSES.includes(value)) found.task.status = value;
+  else if (field === 'prio' && TASK_PRIOS.includes(value)) found.task.prio = value;
+  else return;
+  saveTaskData();
+  render();
+}
+
+function buildStatusDropdown(task) {
+  const st = normalizeTaskStatus(task);
+  const wrap = document.createElement('div');
+  wrap.className = 'meta-dropdown';
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'meta-dropdown-trigger status-pill status-' + st;
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-haspopup', 'listbox');
+  btn.title = 'Change status';
+  btn.textContent = STATUS_LABEL[st];
+
+  const panel = document.createElement('div');
+  panel.className = 'meta-dropdown-panel';
+  panel.setAttribute('role', 'listbox');
+
+  TASK_STATUSES.forEach(sv => {
+    const opt = document.createElement('button');
+    opt.type = 'button';
+    opt.className = 'meta-dropdown-option' + (sv === st ? ' active' : '');
+    opt.setAttribute('role', 'option');
+    opt.setAttribute('aria-selected', sv === st ? 'true' : 'false');
+    const dot = document.createElement('span');
+    dot.className = 'meta-dropdown-option-dot status-pill status-' + sv;
+    dot.style.borderRadius = '2px';
+    opt.appendChild(dot);
+    const lab = document.createElement('span');
+    lab.textContent = STATUS_LABEL[sv];
+    opt.appendChild(lab);
+    opt.addEventListener('click', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      closeAllMetaDropdowns();
+      updateTaskField(task.id, 'status', sv);
+    });
+    opt.addEventListener('mousedown', e => e.stopPropagation());
+    panel.appendChild(opt);
+  });
+
+  function toggle(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    const was = wrap.classList.contains('open');
+    closeAllMetaDropdowns();
+    if (!was) {
+      wrap.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  }
+  btn.addEventListener('click', toggle);
+  btn.addEventListener('mousedown', e => e.stopPropagation());
+  panel.addEventListener('mousedown', e => e.stopPropagation());
+
+  wrap.appendChild(btn);
+  wrap.appendChild(panel);
+  return wrap;
+}
+
+function buildPrioDropdown(task) {
+  const pr = normalizeTaskPrio(task);
+  const wrap = document.createElement('div');
+  wrap.className = 'meta-dropdown';
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'meta-dropdown-trigger prio-pill prio-' + (pr === 'none' ? 'none' : pr);
+  btn.setAttribute('aria-expanded', 'false');
+  btn.setAttribute('aria-haspopup', 'listbox');
+  btn.title = 'Change importance';
+  btn.textContent = pr === 'none' ? 'None' : PRIO_LABEL[pr];
+
+  const panel = document.createElement('div');
+  panel.className = 'meta-dropdown-panel';
+
+  TASK_PRIOS.forEach(pv => {
+    const opt = document.createElement('button');
+    opt.type = 'button';
+    opt.className = 'meta-dropdown-option' + (pv === pr ? ' active' : '');
+    const dot = document.createElement('span');
+    dot.className = 'meta-dropdown-option-dot prio-pill prio-' + (pv === 'none' ? 'none' : pv);
+    if (pv === 'none') dot.style.opacity = '0.35';
+    opt.appendChild(dot);
+    const lab = document.createElement('span');
+    lab.textContent = pv === 'none' ? 'None' : PRIO_LABEL[pv];
+    opt.appendChild(lab);
+    opt.addEventListener('click', e => {
+      e.stopPropagation();
+      e.preventDefault();
+      closeAllMetaDropdowns();
+      updateTaskField(task.id, 'prio', pv);
+    });
+    opt.addEventListener('mousedown', e => e.stopPropagation());
+    panel.appendChild(opt);
+  });
+
+  function toggle(e) {
+    e.stopPropagation();
+    e.preventDefault();
+    const was = wrap.classList.contains('open');
+    closeAllMetaDropdowns();
+    if (!was) {
+      wrap.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    }
+  }
+  btn.addEventListener('click', toggle);
+  btn.addEventListener('mousedown', e => e.stopPropagation());
+  panel.addEventListener('mousedown', e => e.stopPropagation());
+
+  wrap.appendChild(btn);
+  wrap.appendChild(panel);
+  return wrap;
+}
+
 /* ──────────────────────────────────────────────
    Drag-and-drop state
    ────────────────────────────────────────────── */
@@ -1305,17 +1515,8 @@ function buildTaskRow(task, compact, cat) {
   tag.textContent = FREQ_LABEL[task.freq] || task.freq;
   meta.appendChild(tag);
 
-  const stPill = document.createElement('span');
-  stPill.className = 'status-pill status-' + st;
-  stPill.textContent = STATUS_LABEL[st];
-  meta.appendChild(stPill);
-
-  if (pr !== 'none') {
-    const prPill = document.createElement('span');
-    prPill.className = 'prio-pill prio-' + pr;
-    prPill.textContent = PRIO_LABEL[pr];
-    meta.appendChild(prPill);
-  }
+  meta.appendChild(buildStatusDropdown(task));
+  meta.appendChild(buildPrioDropdown(task));
 
   // Due date badge
   const dueBadge = getDueBadge(task.due);
@@ -2015,6 +2216,11 @@ function bootApp() {
 /* ──────────────────────────────────────────────
    Event listeners
    ────────────────────────────────────────────── */
+
+// Close Notion-style meta dropdowns on outside click
+document.addEventListener('mousedown', e => {
+  if (!e.target.closest('.meta-dropdown')) closeAllMetaDropdowns();
+});
 
 // PIN gate
 document.getElementById('pin-submit').addEventListener('click', tryUnlock);
