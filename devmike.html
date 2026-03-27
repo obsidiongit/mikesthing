@@ -1,0 +1,1450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Devmike — Obsidion</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0a;
+    --surface: #111111;
+    --surface2: #161616;
+    --border: #2a2a2a;
+    --border-strong: #3a3a3a;
+    --text: #f0f0f0;
+    --muted: #8a8a8a;
+    --dim: #5a5a5a;
+    --white: #ffffff;
+    --error: #c44;
+    --accent-today: #c8963a;
+    --accent-soon: #7a7a40;
+    --font: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font);
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--text);
+    background: var(--bg);
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .hidden { display: none !important; }
+
+  /* ── PIN gate ─────────────────────────────── */
+  .pin-gate {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    background: var(--bg);
+  }
+  .pin-card {
+    width: 100%;
+    max-width: 380px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    padding: 40px 36px;
+  }
+  .pin-card h1 {
+    font-size: 22px;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--white);
+    margin-bottom: 6px;
+  }
+  .pin-card .pin-brand {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--muted);
+    margin-bottom: 28px;
+  }
+  .pin-card label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .pin-card input[type="password"] {
+    width: 100%;
+    font-family: ui-monospace, monospace;
+    font-size: 20px;
+    letter-spacing: 0.35em;
+    padding: 14px 16px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    border-radius: 0;
+  }
+  .pin-card input:focus { outline: none; border-color: var(--white); }
+  .pin-error { font-size: 12px; color: var(--error); margin-top: 10px; min-height: 1.2em; }
+  .pin-card .pin-actions { margin-top: 24px; }
+  .pin-hint { font-size: 11px; color: var(--dim); margin-top: 20px; line-height: 1.5; }
+
+  /* ── Buttons ──────────────────────────────── */
+  .btn {
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    padding: 12px 20px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface2);
+    color: var(--text);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .btn:hover { border-color: var(--white); background: var(--surface); }
+  .btn-primary { background: var(--white); color: var(--bg); border-color: var(--white); }
+  .btn-primary:hover { background: #e8e8e8; border-color: #e8e8e8; }
+  .btn-ghost {
+    font-size: 12px;
+    padding: 8px 14px;
+    background: transparent;
+    border-color: var(--border);
+    color: var(--muted);
+  }
+  .btn-ghost:hover { color: var(--text); border-color: var(--border-strong); }
+
+  /* ── App shell ────────────────────────────── */
+  .app-wrap {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 32px 20px 80px;
+  }
+  .app-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .app-title { font-size: 24px; font-weight: 600; letter-spacing: -0.03em; color: var(--white); }
+  .app-meta { font-size: 12px; color: var(--muted); font-weight: 500; }
+  .header-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  /* ── Search ───────────────────────────────── */
+  .search-wrap { margin-bottom: 20px; position: relative; }
+  .search-input {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 10px 36px 10px 14px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text);
+    transition: border-color 0.15s;
+  }
+  .search-input:focus { outline: none; border-color: var(--border-strong); }
+  .search-input::placeholder { color: var(--dim); }
+  .search-clear {
+    position: absolute;
+    right: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--dim);
+    cursor: pointer;
+    font-size: 16px;
+    line-height: 1;
+    padding: 2px 4px;
+    display: none;
+  }
+  .search-clear:hover { color: var(--muted); }
+  .search-wrap.has-query .search-clear { display: block; }
+  .search-hint {
+    font-size: 11px;
+    color: var(--dim);
+    margin-top: 6px;
+    text-align: right;
+  }
+
+  /* ── Section ──────────────────────────────── */
+  .section { margin-bottom: 32px; }
+  .section-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .section-head h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    flex: 1;
+  }
+  .btn-add { font-size: 12px; font-weight: 500; padding: 6px 12px; }
+
+  /* ── Daily panel ──────────────────────────── */
+  .daily-panel {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 28px;
+  }
+  .daily-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 18px;
+    background: var(--surface2);
+    border-bottom: 1px solid var(--border);
+  }
+  .daily-head span:first-child {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--white);
+  }
+  .daily-count { font-size: 12px; color: var(--muted); }
+  .progress-bar-wrap {
+    height: 3px;
+    background: var(--border);
+  }
+  .progress-bar-fill {
+    height: 3px;
+    background: var(--white);
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* ── Task list ────────────────────────────── */
+  .task-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    background: var(--border);
+    min-height: 4px;
+  }
+  .task-list.drag-over { background: var(--border-strong); }
+
+  .task-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--surface2);
+    cursor: pointer;
+    transition: background 0.12s;
+    user-select: none;
+    position: relative;
+  }
+  .task-row:hover { background: #1a1a1a; }
+  .task-row.done { opacity: 0.42; }
+  .task-row.done .task-title { text-decoration: line-through; color: var(--muted); }
+  .task-row.dragging { opacity: 0.3; background: var(--surface); }
+  .task-row.drop-before { box-shadow: inset 0 2px 0 0 var(--white); }
+  .task-row.drop-after  { box-shadow: inset 0 -2px 0 0 var(--white); }
+  .task-row.search-hidden { display: none; }
+
+  /* drag handle */
+  .drag-handle {
+    flex-shrink: 0;
+    width: 14px;
+    color: var(--dim);
+    cursor: grab;
+    font-size: 13px;
+    line-height: 1;
+    margin-top: 3px;
+    opacity: 0;
+    transition: opacity 0.12s;
+    touch-action: none;
+  }
+  .task-row:hover .drag-handle { opacity: 1; }
+  .drag-handle:active { cursor: grabbing; }
+
+  .task-check {
+    width: 20px;
+    height: 20px;
+    flex-shrink: 0;
+    border: 1.5px solid var(--dim);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--bg);
+    transition: border-color 0.12s, background 0.12s;
+  }
+  .task-row:hover .task-check { border-color: var(--muted); }
+  .task-row.done .task-check { border-color: var(--white); background: var(--white); }
+  .task-check svg { display: none; width: 12px; height: 12px; stroke: var(--bg); stroke-width: 2.5; }
+  .task-row.done .task-check svg { display: block; }
+
+  .task-body { flex: 1; min-width: 0; }
+  .task-title { font-size: 15px; font-weight: 500; color: var(--text); line-height: 1.4; }
+  .task-meta { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 6px; }
+
+  .task-tag {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 2px 7px;
+  }
+  /* due badges */
+  .due-badge {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    padding: 2px 7px;
+    border: 1px solid;
+  }
+  .due-overdue { color: var(--error); border-color: #5a2222; background: #1a0808; }
+  .due-today   { color: var(--accent-today); border-color: #4a3010; background: #140e00; }
+  .due-soon    { color: #b0b060; border-color: #3a3a18; }
+  .due-future  { color: var(--dim); border-color: var(--border); }
+  /* age badge */
+  .age-badge {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--dim);
+    padding: 2px 7px;
+    border: 1px solid var(--border);
+    letter-spacing: 0.04em;
+  }
+
+  .task-sub { font-size: 13px; color: var(--muted); line-height: 1.45; margin-top: 4px; }
+
+  .task-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    flex-shrink: 0;
+  }
+  .task-actions button {
+    font-family: var(--font);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 8px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--muted);
+    cursor: pointer;
+  }
+  .task-actions button:hover { color: var(--text); border-color: var(--border-strong); }
+  .task-actions button.danger:hover { color: var(--error); border-color: #633; }
+
+  /* ── Completed panel ──────────────────────── */
+  .completed-panel {
+    border: 1px solid var(--border);
+    background: var(--surface);
+    margin-bottom: 28px;
+    opacity: 0.58;
+  }
+  .completed-panel .section-head { padding: 14px 18px 8px; margin-bottom: 0; }
+  .completed-toggle {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    font-family: var(--font);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .completed-toggle:hover { color: var(--text); }
+
+  /* ── Footer ───────────────────────────────── */
+  .footer-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 40px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ── Modals ───────────────────────────────── */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.75);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  .modal-overlay.show { display: flex; }
+  .modal-box {
+    width: 100%;
+    max-width: 420px;
+    border: 1px solid var(--border-strong);
+    background: var(--surface);
+    padding: 28px;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+  .modal-title { font-size: 16px; font-weight: 600; color: var(--white); margin-bottom: 20px; }
+  .field { margin-bottom: 16px; }
+  .field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+  .field input, .field select, .field textarea {
+    width: 100%;
+    font-family: var(--font);
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+  }
+  .field input[type="date"]::-webkit-calendar-picker-indicator { filter: invert(0.5); cursor: pointer; }
+  .field textarea { min-height: 80px; resize: vertical; }
+  .field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: var(--white); }
+  .modal-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
+  .modal-actions .btn { flex: 1; min-width: 100px; }
+
+  /* ── Trash modal ──────────────────────────── */
+  .trash-meta { font-size: 11px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
+  .trash-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .trash-row:last-child { border-bottom: none; }
+  .trash-row-text { flex: 1; min-width: 160px; }
+  .trash-name { font-size: 14px; font-weight: 500; }
+  .trash-detail { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 0.06em; }
+  .trash-actions { display: flex; gap: 6px; }
+  .empty-trash { font-size: 13px; color: var(--dim); text-align: center; padding: 24px 8px; }
+
+  /* ── No results ───────────────────────────── */
+  .no-results {
+    font-size: 13px;
+    color: var(--dim);
+    text-align: center;
+    padding: 20px;
+    background: var(--surface2);
+    display: none;
+  }
+  .search-active .no-results.show { display: block; }
+
+  @media (max-width: 540px) {
+    .app-header { flex-direction: column; align-items: flex-start; }
+    .header-actions { width: 100%; }
+    .drag-handle { opacity: 0.4; }
+  }
+</style>
+</head>
+<body>
+<!--
+  Devmike — internal task list. Client-side PIN is not real security.
+  PIN is stored in localStorage. Default fallback: DEVMIKE_PIN_DEFAULT constant below.
+  Press N to quick-add a task. Drag handles to reorder.
+-->
+
+<!-- PIN gate -->
+<div id="pin-gate" class="pin-gate">
+  <div class="pin-card">
+    <h1>Devmike</h1>
+    <div class="pin-brand">Obsidion · internal</div>
+    <label for="pin-input">Access code (4 digits)</label>
+    <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    <p class="pin-error" id="pin-error"></p>
+    <div class="pin-actions">
+      <button type="button" class="btn btn-primary" id="pin-submit">Continue</button>
+    </div>
+    <p class="pin-hint">PIN keeps casual visitors out only. Anyone with the file can read it — rotate periodically.</p>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app" class="app-wrap hidden">
+  <header class="app-header">
+    <div>
+      <div class="app-title">Devmike</div>
+      <div class="app-meta" id="header-date"></div>
+    </div>
+    <div class="header-actions">
+      <button type="button" class="btn btn-ghost" id="btn-trash">Recover deleted</button>
+      <button type="button" class="btn btn-ghost" id="btn-change-pin">Change PIN</button>
+      <button type="button" class="btn btn-ghost" id="btn-lock">Lock</button>
+    </div>
+  </header>
+
+  <!-- Search -->
+  <div class="search-wrap" id="search-wrap">
+    <input type="text" class="search-input" id="search-input" placeholder="Search tasks… (or press N to add)" autocomplete="off" spellcheck="false">
+    <button type="button" class="search-clear" id="search-clear" aria-label="Clear search">×</button>
+  </div>
+
+  <!-- Daily recurring panel -->
+  <div class="daily-panel" id="daily-panel-wrap">
+    <div class="daily-head">
+      <span>Today — recurring</span>
+      <span class="daily-count" id="daily-count">0 / 0</span>
+    </div>
+    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="daily-progress"></div></div>
+    <div class="task-list" id="daily-list"></div>
+  </div>
+
+  <!-- Priority -->
+  <div class="section" data-cat="priority">
+    <div class="section-head">
+      <h2>Priority</h2>
+      <button type="button" class="btn btn-add btn-add-task" data-cat="priority">+ Add</button>
+    </div>
+    <div class="task-list" id="tasks-priority" data-cat="priority"></div>
+  </div>
+
+  <!-- Active -->
+  <div class="section" data-cat="active">
+    <div class="section-head">
+      <h2>Active</h2>
+      <button type="button" class="btn btn-add btn-add-task" data-cat="active">+ Add</button>
+    </div>
+    <div class="task-list" id="tasks-active" data-cat="active"></div>
+  </div>
+
+  <!-- Later -->
+  <div class="section" data-cat="later">
+    <div class="section-head">
+      <h2>Later / backlog</h2>
+      <button type="button" class="btn btn-add btn-add-task" data-cat="later">+ Add</button>
+    </div>
+    <div class="task-list" id="tasks-later" data-cat="later"></div>
+  </div>
+
+  <!-- Completed one-time tasks -->
+  <div id="completed-section" class="completed-panel" style="display:none;">
+    <div class="section-head">
+      <h2>Completed</h2>
+      <button type="button" class="completed-toggle" id="btn-clear-completed">Clear all</button>
+    </div>
+    <div class="task-list" id="tasks-completed"></div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer-actions">
+    <button type="button" class="btn btn-ghost" id="btn-reset-period">Clear period completions</button>
+    <button type="button" class="btn btn-ghost" id="btn-export">Export JSON</button>
+    <button type="button" class="btn btn-ghost" id="btn-import">Import JSON</button>
+  </div>
+</div>
+
+<!-- Add / Edit task modal -->
+<div id="modal-task" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-task-title">Add task</div>
+    <div class="field">
+      <label for="f-name">Title</label>
+      <input type="text" id="f-name" maxlength="500" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="f-sub">Notes (optional)</label>
+      <textarea id="f-sub" maxlength="2000"></textarea>
+    </div>
+    <div class="field">
+      <label for="f-due">Due date (optional)</label>
+      <input type="date" id="f-due">
+    </div>
+    <div class="field">
+      <label for="f-freq">Recurrence</label>
+      <select id="f-freq">
+        <option value="one-time">One-time</option>
+        <option value="daily">Daily</option>
+        <option value="weekly">Weekly (week starts Monday)</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-cat">List</label>
+      <select id="f-cat">
+        <option value="priority">Priority</option>
+        <option value="active">Active</option>
+        <option value="later">Later / backlog</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modal-task-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="modal-task-save">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Change PIN modal -->
+<div id="modal-pin" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Change PIN</div>
+    <div class="field">
+      <label for="pin-current">Current PIN</label>
+      <input type="password" id="pin-current" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    </div>
+    <div class="field">
+      <label for="pin-new">New PIN (4 digits)</label>
+      <input type="password" id="pin-new" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    </div>
+    <div class="field">
+      <label for="pin-confirm">Confirm new PIN</label>
+      <input type="password" id="pin-confirm" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+    </div>
+    <p class="pin-error" id="pin-modal-error"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modal-pin-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="modal-pin-save">Save PIN</button>
+    </div>
+  </div>
+</div>
+
+<!-- Recover deleted modal -->
+<div id="modal-trash" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title">Deleted tasks</div>
+    <p class="trash-meta">Up to 50 recent deletions. Restore adds it back; Forget removes it from this list.</p>
+    <div id="trash-list"></div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-primary" id="modal-trash-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Hidden file input for JSON import -->
+<input type="file" id="import-file" accept=".json" style="display:none">
+
+<script>
+/* ──────────────────────────────────────────────
+   Constants & Storage
+   ────────────────────────────────────────────── */
+const DEVMIKE_PIN_DEFAULT = '1234';
+
+const STORAGE_TASKS = 'devmike_tasks_v1';
+const STORAGE_STATE = 'devmike_state_v1';
+const STORAGE_TRASH = 'devmike_trash_v1';
+const STORAGE_PIN   = 'devmike_pin_v1';
+const SESSION_KEY   = 'devmike_unlock';
+const TRASH_MAX     = 50;
+const CATEGORIES    = ['priority', 'active', 'later'];
+
+function getPin()  { return localStorage.getItem(STORAGE_PIN) || DEVMIKE_PIN_DEFAULT; }
+function setPin(p) { localStorage.setItem(STORAGE_PIN, p); }
+
+const DEFAULT_TASK_DATA = { priority: [], active: [], later: [] };
+function deepClone(o) { return JSON.parse(JSON.stringify(o)); }
+
+function loadTaskData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_TASKS);
+    if (raw) {
+      const p = JSON.parse(raw);
+      if (p && CATEGORIES.every(c => Array.isArray(p[c]))) return p;
+    }
+  } catch(e) {}
+  return deepClone(DEFAULT_TASK_DATA);
+}
+let TASK_DATA = loadTaskData();
+function saveTaskData() { localStorage.setItem(STORAGE_TASKS, JSON.stringify(TASK_DATA)); }
+
+function loadState() {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORAGE_STATE));
+    if (s && s.done && typeof s.done === 'object') return s;
+  } catch(e) {}
+  return { done: {} };
+}
+let state = loadState();
+function saveState() { localStorage.setItem(STORAGE_STATE, JSON.stringify(state)); }
+
+function loadTrash() {
+  try {
+    const raw = localStorage.getItem(STORAGE_TRASH);
+    if (raw) { const a = JSON.parse(raw); if (Array.isArray(a)) return a; }
+  } catch(e) {}
+  return [];
+}
+function saveTrash(arr) { localStorage.setItem(STORAGE_TRASH, JSON.stringify(arr)); }
+
+/* ──────────────────────────────────────────────
+   Date helpers
+   ────────────────────────────────────────────── */
+function isoDate(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth()+1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+function todayKey() { return isoDate(new Date()); }
+function weekKey() {
+  const d = new Date(), day = d.getDay();
+  const mon = new Date(d);
+  mon.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+  return 'w' + isoDate(mon);
+}
+
+/* ──────────────────────────────────────────────
+   Due-date badge
+   ────────────────────────────────────────────── */
+function getDueBadge(dateStr) {
+  if (!dateStr) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  const due = new Date(dateStr + 'T00:00:00');
+  const diff = Math.round((due - today) / 86400000);
+  if (diff < 0)  return { label: `${Math.abs(diff)}d overdue`, cls: 'due-overdue' };
+  if (diff === 0) return { label: 'Due today',    cls: 'due-today' };
+  if (diff === 1) return { label: 'Due tomorrow', cls: 'due-soon' };
+  if (diff <= 6)  return { label: `Due in ${diff}d`, cls: 'due-soon' };
+  const d2 = new Date(dateStr + 'T00:00:00');
+  return { label: 'Due ' + d2.toLocaleDateString('en-US', { month:'short', day:'numeric' }), cls: 'due-future' };
+}
+
+/* ──────────────────────────────────────────────
+   Task age badge (shown when > 6 days old)
+   ────────────────────────────────────────────── */
+function getAgeBadge(task) {
+  if (!task.createdAt) return null;
+  const days = Math.floor((Date.now() - task.createdAt) / 86400000);
+  if (days < 7) return null;
+  if (days < 30)  return `${days}d`;
+  if (days < 60)  return `${Math.floor(days/7)}w`;
+  return `${Math.floor(days/30)}mo`;
+}
+
+/* ──────────────────────────────────────────────
+   Task done helpers
+   ────────────────────────────────────────────── */
+function doneKey(task) {
+  if (task.freq === 'daily')  return task.id + '_' + todayKey();
+  if (task.freq === 'weekly') return task.id + '_' + weekKey();
+  return task.id;
+}
+function isDone(task) { return !!state.done[doneKey(task)]; }
+function setDone(task, val) {
+  if (val) state.done[doneKey(task)] = true;
+  else delete state.done[doneKey(task)];
+}
+function clearDoneForTask(task) {
+  Object.keys(state.done)
+    .filter(k => k === task.id || k.startsWith(task.id + '_'))
+    .forEach(k => delete state.done[k]);
+}
+
+/* ──────────────────────────────────────────────
+   Task helpers
+   ────────────────────────────────────────────── */
+function allTasks() { return CATEGORIES.flatMap(c => TASK_DATA[c]); }
+function dailyTasks() { return allTasks().filter(t => t.freq === 'daily'); }
+function genTaskId() { return 'dm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2,8); }
+function findTaskAndCategory(taskId) {
+  for (const cat of CATEGORIES) {
+    const idx = TASK_DATA[cat].findIndex(t => t.id === taskId);
+    if (idx >= 0) return { cat, idx, task: TASK_DATA[cat][idx] };
+  }
+  return null;
+}
+function escapeHtml(s) {
+  if (s == null || s === '') return '';
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+const FREQ_LABEL = { daily: 'Daily', weekly: 'Weekly', 'one-time': 'One-time' };
+const CAT_LABEL  = { priority: 'Priority', active: 'Active', later: 'Later' };
+
+/* ──────────────────────────────────────────────
+   Drag-and-drop state
+   ────────────────────────────────────────────── */
+let dragSrcId  = null;
+let dragSrcCat = null;
+let dropTargetId  = null;
+let dropPosition  = 'after';
+
+function clearDropIndicators() {
+  document.querySelectorAll('.task-row.drop-before, .task-row.drop-after').forEach(r => {
+    r.classList.remove('drop-before', 'drop-after');
+  });
+}
+
+/* ──────────────────────────────────────────────
+   Build task row
+   ────────────────────────────────────────────── */
+function buildTaskRow(task, compact, cat) {
+  const done = isDone(task);
+  const row = document.createElement('div');
+  row.className = 'task-row' + (done ? ' done' : '');
+  row.dataset.id = task.id;
+  row.dataset.searchText = ((task.name || '') + ' ' + (task.sub || '')).toLowerCase();
+
+  // Drag handle (non-compact only)
+  if (!compact) {
+    row.draggable = true;
+    const handle = document.createElement('div');
+    handle.className = 'drag-handle';
+    handle.innerHTML = '⠿';
+    handle.title = 'Drag to reorder';
+    // Only start drag from handle
+    handle.addEventListener('mousedown', () => { row.draggable = true; });
+    row.appendChild(handle);
+
+    // Drag events
+    row.addEventListener('dragstart', e => {
+      dragSrcId  = task.id;
+      dragSrcCat = cat;
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', task.id);
+      setTimeout(() => row.classList.add('dragging'), 0);
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      clearDropIndicators();
+      document.querySelectorAll('.task-list').forEach(l => l.classList.remove('drag-over'));
+      dragSrcId = null; dragSrcCat = null; dropTargetId = null;
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.stopPropagation();
+      e.dataTransfer.dropEffect = 'move';
+      clearDropIndicators();
+      const rect = row.getBoundingClientRect();
+      dropTargetId = task.id;
+      dropPosition = e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+      row.classList.add(dropPosition === 'before' ? 'drop-before' : 'drop-after');
+    });
+  }
+
+  // Checkbox
+  const check = document.createElement('div');
+  check.className = 'task-check';
+  check.innerHTML = '<svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7"/></svg>';
+
+  // Body
+  const body = document.createElement('div');
+  body.className = 'task-body';
+
+  const title = document.createElement('div');
+  title.className = 'task-title';
+  title.textContent = task.name;
+  body.appendChild(title);
+
+  // Meta row (badges)
+  const meta = document.createElement('div');
+  meta.className = 'task-meta';
+
+  const tag = document.createElement('span');
+  tag.className = 'task-tag';
+  tag.textContent = FREQ_LABEL[task.freq] || task.freq;
+  meta.appendChild(tag);
+
+  // Due date badge
+  const dueBadge = getDueBadge(task.due);
+  if (dueBadge) {
+    const sp = document.createElement('span');
+    sp.className = 'due-badge ' + dueBadge.cls;
+    sp.textContent = dueBadge.label;
+    meta.appendChild(sp);
+  }
+
+  // Age badge
+  const ageStr = getAgeBadge(task);
+  if (ageStr) {
+    const sp = document.createElement('span');
+    sp.className = 'age-badge';
+    sp.title = 'In backlog ' + ageStr;
+    sp.textContent = ageStr;
+    meta.appendChild(sp);
+  }
+
+  body.appendChild(meta);
+
+  if (task.sub) {
+    const sub = document.createElement('div');
+    sub.className = 'task-sub';
+    sub.textContent = task.sub;
+    body.appendChild(sub);
+  }
+
+  row.appendChild(check);
+  row.appendChild(body);
+
+  // Action buttons (non-compact)
+  if (!compact) {
+    const actions = document.createElement('div');
+    actions.className = 'task-actions';
+    const bEdit = document.createElement('button');
+    bEdit.type = 'button';
+    bEdit.textContent = 'Edit';
+    bEdit.addEventListener('click', e => { e.stopPropagation(); openTaskModal('edit', null, task.id); });
+    const bDel = document.createElement('button');
+    bDel.type = 'button';
+    bDel.className = 'danger';
+    bDel.textContent = 'Delete';
+    bDel.addEventListener('click', e => deleteTask(task.id, e));
+    actions.appendChild(bEdit);
+    actions.appendChild(bDel);
+    row.appendChild(actions);
+  }
+
+  row.addEventListener('click', () => toggleTask(task, row));
+  return row;
+}
+
+/* ──────────────────────────────────────────────
+   Toggle task done state
+   ────────────────────────────────────────────── */
+function toggleTask(task) {
+  const was = isDone(task);
+  setDone(task, !was);
+  saveState();
+  if (task.freq === 'one-time') {
+    render(); // moves to/from completed section
+  } else {
+    document.querySelectorAll(`[data-id="${CSS.escape(task.id)}"]`).forEach(node => {
+      node.classList.toggle('done', !was);
+    });
+    updateDailyCount();
+  }
+}
+
+/* ──────────────────────────────────────────────
+   Render
+   ────────────────────────────────────────────── */
+function render() {
+  // Daily panel
+  const dailyEl = document.getElementById('daily-list');
+  dailyEl.innerHTML = '';
+  const daily = dailyTasks();
+  if (daily.length === 0) {
+    dailyEl.innerHTML = '<div class="empty-trash" style="padding:20px 16px">No daily recurring tasks. Add one and set recurrence to Daily.</div>';
+  } else {
+    daily.forEach(t => dailyEl.appendChild(buildTaskRow(t, true, null)));
+  }
+
+  // Category sections — filter out completed one-time tasks
+  const completedTasks = [];
+  CATEGORIES.forEach(cat => {
+    const el = document.getElementById('tasks-' + cat);
+    el.innerHTML = '';
+    TASK_DATA[cat].forEach(t => {
+      if (t.freq === 'one-time' && isDone(t)) {
+        completedTasks.push({ task: t, cat });
+      } else {
+        el.appendChild(buildTaskRow(t, false, cat));
+      }
+    });
+
+    // Wire up drop target on the list container
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      el.classList.add('drag-over');
+      // If dragging over the list but not over any specific row, set drop at end
+      if (!dropTargetId) {
+        clearDropIndicators();
+      }
+    });
+    el.addEventListener('dragleave', e => {
+      if (!el.contains(e.relatedTarget)) {
+        el.classList.remove('drag-over');
+      }
+    });
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('drag-over');
+      clearDropIndicators();
+      if (!dragSrcId) return;
+      const src = findTaskAndCategory(dragSrcId);
+      if (!src) return;
+      const taskToMove = deepClone(src.task);
+      // Remove from source
+      TASK_DATA[src.cat].splice(src.idx, 1);
+      // Insert in destination
+      if (dropTargetId && dropTargetId !== dragSrcId) {
+        const dstIdx = TASK_DATA[cat].findIndex(t => t.id === dropTargetId);
+        if (dstIdx >= 0) {
+          const insertAt = dropPosition === 'before' ? dstIdx : dstIdx + 1;
+          TASK_DATA[cat].splice(insertAt, 0, taskToMove);
+        } else {
+          TASK_DATA[cat].push(taskToMove);
+        }
+      } else {
+        TASK_DATA[cat].push(taskToMove);
+      }
+      dropTargetId = null;
+      saveTaskData();
+      render();
+    });
+  });
+
+  // Completed section
+  const completedSection = document.getElementById('completed-section');
+  const completedEl = document.getElementById('tasks-completed');
+  completedEl.innerHTML = '';
+  if (completedTasks.length > 0) {
+    completedSection.style.display = '';
+    completedTasks.forEach(({ task, cat }) => completedEl.appendChild(buildTaskRow(task, false, cat)));
+  } else {
+    completedSection.style.display = 'none';
+  }
+
+  // Date in header
+  document.getElementById('header-date').textContent =
+    new Date().toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric', year:'numeric' });
+
+  updateDailyCount();
+  updateTrashLabel();
+  applySearch(); // re-apply search filter after re-render
+}
+
+/* ──────────────────────────────────────────────
+   Daily progress bar + count
+   ────────────────────────────────────────────── */
+function updateDailyCount() {
+  const daily = dailyTasks();
+  const done  = daily.filter(t => isDone(t)).length;
+  const total = daily.length;
+  const el    = document.getElementById('daily-count');
+  if (el) el.textContent = `${done} / ${total}`;
+  const bar = document.getElementById('daily-progress');
+  if (bar) bar.style.width = total > 0 ? `${Math.round(done / total * 100)}%` : '0%';
+}
+
+/* ──────────────────────────────────────────────
+   Trash label
+   ────────────────────────────────────────────── */
+function updateTrashLabel() {
+  const n   = loadTrash().length;
+  const btn = document.getElementById('btn-trash');
+  if (btn) btn.textContent = n ? `Recover deleted (${n})` : 'Recover deleted';
+}
+
+/* ──────────────────────────────────────────────
+   Search / filter
+   ────────────────────────────────────────────── */
+let searchQuery = '';
+
+function applySearch() {
+  const q = searchQuery.trim().toLowerCase();
+  const app = document.getElementById('app');
+
+  document.getElementById('search-wrap').classList.toggle('has-query', q.length > 0);
+  app.classList.toggle('search-active', q.length > 0);
+
+  document.querySelectorAll('.task-row').forEach(row => {
+    if (!q) {
+      row.classList.remove('search-hidden');
+      return;
+    }
+    const text = row.dataset.searchText || '';
+    row.classList.toggle('search-hidden', !text.includes(q));
+  });
+
+  // Hide/show daily panel during search
+  const dailyWrap = document.getElementById('daily-panel-wrap');
+  if (q) {
+    // Check if any daily rows are visible
+    const anyDailyVisible = [...document.querySelectorAll('#daily-list .task-row')]
+      .some(r => !r.classList.contains('search-hidden'));
+    dailyWrap.style.display = anyDailyVisible ? '' : 'none';
+  } else {
+    dailyWrap.style.display = '';
+  }
+
+  // Show "no results" if nothing matches
+  document.querySelectorAll('.section').forEach(sec => {
+    const cat  = sec.dataset.cat;
+    const list = document.getElementById('tasks-' + cat);
+    if (!list) return;
+    const hasVisible = [...list.querySelectorAll('.task-row')]
+      .some(r => !r.classList.contains('search-hidden'));
+    sec.style.opacity = (q && !hasVisible) ? '0.3' : '';
+  });
+}
+
+/* ──────────────────────────────────────────────
+   Add / Edit task modal
+   ────────────────────────────────────────────── */
+let modalMode   = 'add';
+let modalEditId = null;
+
+function openTaskModal(mode, cat, taskId) {
+  modalMode   = mode;
+  modalEditId = taskId || null;
+  const titleEl = document.getElementById('modal-task-title');
+  const fcEl    = document.getElementById('f-cat');
+  if (mode === 'add') {
+    titleEl.textContent = 'Add task';
+    fcEl.value = cat || 'priority';
+    document.getElementById('f-name').value = '';
+    document.getElementById('f-sub').value  = '';
+    document.getElementById('f-due').value  = '';
+    document.getElementById('f-freq').value = 'one-time';
+  } else {
+    titleEl.textContent = 'Edit task';
+    const found = findTaskAndCategory(taskId);
+    if (!found) return closeTaskModal();
+    const t = found.task;
+    fcEl.value = found.cat;
+    document.getElementById('f-name').value = t.name;
+    document.getElementById('f-sub').value  = t.sub || '';
+    document.getElementById('f-due').value  = t.due || '';
+    document.getElementById('f-freq').value = t.freq;
+  }
+  document.getElementById('modal-task').classList.add('show');
+  setTimeout(() => document.getElementById('f-name').focus(), 30);
+}
+
+function closeTaskModal() {
+  document.getElementById('modal-task').classList.remove('show');
+  modalEditId = null;
+}
+
+function saveTaskModal() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { alert('Enter a title.'); return; }
+  const sub  = document.getElementById('f-sub').value.trim();
+  const due  = document.getElementById('f-due').value;
+  const freq = document.getElementById('f-freq').value;
+  const cat  = document.getElementById('f-cat').value;
+
+  if (modalMode === 'add') {
+    const task = { id: genTaskId(), name, freq, createdAt: Date.now() };
+    if (sub) task.sub = sub;
+    if (due) task.due = due;
+    TASK_DATA[cat].push(task);
+  } else {
+    const found = findTaskAndCategory(modalEditId);
+    if (!found) return closeTaskModal();
+    const t = found.task;
+    if (t.freq !== freq) clearDoneForTask(t);
+    t.name = name;
+    t.freq = freq;
+    if (sub) t.sub = sub; else delete t.sub;
+    if (due) t.due = due; else delete t.due;
+    if (found.cat !== cat) {
+      TASK_DATA[found.cat].splice(found.idx, 1);
+      TASK_DATA[cat].push(t);
+    }
+  }
+  saveState();
+  saveTaskData();
+  closeTaskModal();
+  render();
+}
+
+/* ──────────────────────────────────────────────
+   Delete task
+   ────────────────────────────────────────────── */
+function deleteTask(taskId, ev) {
+  ev.stopPropagation();
+  if (!confirm('Delete this task? You can recover it from Recover deleted.')) return;
+  const found = findTaskAndCategory(taskId);
+  if (!found) return;
+  clearDoneForTask(found.task);
+  const snapshot = { task: deepClone(found.task), cat: found.cat, deletedAt: Date.now() };
+  TASK_DATA[found.cat].splice(found.idx, 1);
+  const trash = loadTrash();
+  trash.unshift(snapshot);
+  if (trash.length > TRASH_MAX) trash.length = TRASH_MAX;
+  saveTrash(trash);
+  saveState();
+  saveTaskData();
+  render();
+}
+
+/* ──────────────────────────────────────────────
+   Recover deleted modal
+   ────────────────────────────────────────────── */
+function renderTrashList() {
+  const trash = loadTrash();
+  const el    = document.getElementById('trash-list');
+  if (!trash.length) { el.innerHTML = '<div class="empty-trash">Nothing to recover.</div>'; return; }
+  el.innerHTML = trash.map((entry, i) => {
+    const t   = entry.task;
+    const lbl = CAT_LABEL[entry.cat] || entry.cat;
+    const fq  = FREQ_LABEL[t.freq] || t.freq;
+    return `<div class="trash-row">
+      <div class="trash-row-text">
+        <div class="trash-name">${escapeHtml(t.name)}</div>
+        <div class="trash-detail">${escapeHtml(lbl)} · ${escapeHtml(fq)}</div>
+      </div>
+      <div class="trash-actions">
+        <button type="button" class="btn" onclick="restoreTrash(${i})">Restore</button>
+        <button type="button" class="btn" onclick="forgetTrash(${i})">Forget</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+function openTrashModal()  { document.getElementById('modal-trash').classList.add('show'); renderTrashList(); }
+function closeTrashModal() { document.getElementById('modal-trash').classList.remove('show'); }
+function restoreTrash(index) {
+  const trash = loadTrash();
+  if (index < 0 || index >= trash.length) return;
+  const entry = trash[index];
+  let task = deepClone(entry.task);
+  if (findTaskAndCategory(task.id)) task.id = genTaskId();
+  TASK_DATA[entry.cat].push(task);
+  trash.splice(index, 1);
+  saveTrash(trash); saveTaskData(); saveState();
+  render(); renderTrashList(); updateTrashLabel();
+}
+function forgetTrash(index) {
+  if (!confirm("Remove from this list? You won't be able to restore it.")) return;
+  const trash = loadTrash();
+  if (index < 0 || index >= trash.length) return;
+  trash.splice(index, 1);
+  saveTrash(trash); renderTrashList(); updateTrashLabel();
+}
+
+/* ──────────────────────────────────────────────
+   Clear completed
+   ────────────────────────────────────────────── */
+function clearCompleted() {
+  if (!confirm('Remove all completed tasks? They will be moved to Recover deleted.')) return;
+  const toDelete = [];
+  CATEGORIES.forEach(cat => {
+    TASK_DATA[cat].forEach(t => {
+      if (t.freq === 'one-time' && isDone(t)) toDelete.push({ cat, id: t.id });
+    });
+  });
+  const trash = loadTrash();
+  toDelete.forEach(({ cat, id }) => {
+    const idx = TASK_DATA[cat].findIndex(t => t.id === id);
+    if (idx < 0) return;
+    const snapshot = { task: deepClone(TASK_DATA[cat][idx]), cat, deletedAt: Date.now() };
+    clearDoneForTask(TASK_DATA[cat][idx]);
+    TASK_DATA[cat].splice(idx, 1);
+    trash.unshift(snapshot);
+  });
+  if (trash.length > TRASH_MAX) trash.length = TRASH_MAX;
+  saveTrash(trash); saveTaskData(); saveState();
+  render();
+}
+
+/* ──────────────────────────────────────────────
+   Reset period completions
+   ────────────────────────────────────────────── */
+function resetPeriodCompletions() {
+  if (!confirm('Clear completions for daily and weekly tasks this period? One-time tasks are unchanged.')) return;
+  allTasks().forEach(t => {
+    if (t.freq === 'one-time') return;
+    const k = doneKey(t);
+    if (state.done[k]) delete state.done[k];
+  });
+  saveState(); render();
+}
+
+/* ──────────────────────────────────────────────
+   Change PIN modal
+   ────────────────────────────────────────────── */
+function openPinModal() {
+  ['pin-current','pin-new','pin-confirm'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pin-modal-error').textContent = '';
+  document.getElementById('modal-pin').classList.add('show');
+  setTimeout(() => document.getElementById('pin-current').focus(), 30);
+}
+function closePinModal() { document.getElementById('modal-pin').classList.remove('show'); }
+function savePinModal() {
+  const current = document.getElementById('pin-current').value.replace(/\D/g,'');
+  const next    = document.getElementById('pin-new').value.replace(/\D/g,'');
+  const confirm = document.getElementById('pin-confirm').value.replace(/\D/g,'');
+  const errEl   = document.getElementById('pin-modal-error');
+  errEl.textContent = '';
+  if (current !== getPin()) {
+    errEl.textContent = 'Current PIN is incorrect.';
+    document.getElementById('pin-current').value = ''; return;
+  }
+  if (next.length !== 4) { errEl.textContent = 'New PIN must be exactly 4 digits.'; return; }
+  if (next !== confirm)  { errEl.textContent = 'PINs do not match.'; document.getElementById('pin-confirm').value = ''; return; }
+  setPin(next); closePinModal();
+  const btn = document.getElementById('btn-change-pin');
+  const orig = btn.textContent;
+  btn.textContent = 'PIN saved ✓';
+  setTimeout(() => { btn.textContent = orig; }, 2200);
+}
+
+/* ──────────────────────────────────────────────
+   Export / Import JSON
+   ────────────────────────────────────────────── */
+function exportData() {
+  const payload = {
+    _version: 1,
+    exportedAt: new Date().toISOString(),
+    tasks: deepClone(TASK_DATA),
+    state: deepClone(state),
+    trash: loadTrash()
+  };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `devmike-backup-${isoDate(new Date())}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importData(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.tasks || !CATEGORIES.every(c => Array.isArray(data.tasks[c]))) {
+        alert('Invalid backup file — missing task data.');
+        return;
+      }
+      if (!confirm('This will replace ALL current tasks, state, and trash with the backup. Continue?')) return;
+      TASK_DATA = data.tasks;
+      state     = data.state || { done: {} };
+      saveTaskData(); saveState();
+      if (Array.isArray(data.trash)) saveTrash(data.trash);
+      render();
+      alert('Import complete!');
+    } catch(err) {
+      alert('Could not parse file: ' + err.message);
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ──────────────────────────────────────────────
+   PIN gate
+   ────────────────────────────────────────────── */
+function tryUnlock() {
+  const raw = document.getElementById('pin-input').value.replace(/\D/g,'');
+  const err = document.getElementById('pin-error');
+  err.textContent = '';
+  if (raw.length !== 4) { err.textContent = 'Enter all 4 digits.'; return; }
+  if (raw !== getPin()) {
+    err.textContent = 'Invalid code.';
+    document.getElementById('pin-input').value = ''; return;
+  }
+  sessionStorage.setItem(SESSION_KEY, '1');
+  document.getElementById('pin-gate').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  bootApp();
+}
+function lockApp() { sessionStorage.removeItem(SESSION_KEY); location.reload(); }
+function bootApp() { render(); }
+
+/* ──────────────────────────────────────────────
+   Event listeners
+   ────────────────────────────────────────────── */
+
+// PIN gate
+document.getElementById('pin-submit').addEventListener('click', tryUnlock);
+document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+
+// Task modal
+document.getElementById('modal-task-cancel').addEventListener('click', closeTaskModal);
+document.getElementById('modal-task-save').addEventListener('click', saveTaskModal);
+document.getElementById('modal-task').addEventListener('click', e => { if (e.target.id === 'modal-task') closeTaskModal(); });
+document.querySelector('#modal-task .modal-box').addEventListener('click', e => e.stopPropagation());
+document.getElementById('f-name').addEventListener('keydown', e => { if (e.key === 'Enter') saveTaskModal(); });
+
+// Add task buttons
+document.querySelectorAll('.btn-add-task').forEach(btn => {
+  btn.addEventListener('click', () => openTaskModal('add', btn.dataset.cat));
+});
+
+// Change PIN modal
+document.getElementById('btn-change-pin').addEventListener('click', openPinModal);
+document.getElementById('modal-pin-cancel').addEventListener('click', closePinModal);
+document.getElementById('modal-pin-save').addEventListener('click', savePinModal);
+document.getElementById('modal-pin').addEventListener('click', e => { if (e.target.id === 'modal-pin') closePinModal(); });
+document.querySelector('#modal-pin .modal-box').addEventListener('click', e => e.stopPropagation());
+['pin-current','pin-new','pin-confirm'].forEach(id => {
+  document.getElementById(id).addEventListener('keydown', e => { if (e.key === 'Enter') savePinModal(); });
+});
+
+// Recover deleted modal
+document.getElementById('btn-trash').addEventListener('click', openTrashModal);
+document.getElementById('modal-trash-close').addEventListener('click', closeTrashModal);
+document.getElementById('modal-trash').addEventListener('click', e => { if (e.target.id === 'modal-trash') closeTrashModal(); });
+document.querySelector('#modal-trash .modal-box').addEventListener('click', e => e.stopPropagation());
+
+// Header buttons
+document.getElementById('btn-lock').addEventListener('click', lockApp);
+document.getElementById('btn-reset-period').addEventListener('click', resetPeriodCompletions);
+document.getElementById('btn-clear-completed').addEventListener('click', clearCompleted);
+
+// Export / Import
+document.getElementById('btn-export').addEventListener('click', exportData);
+document.getElementById('btn-import').addEventListener('click', () => document.getElementById('import-file').click());
+document.getElementById('import-file').addEventListener('change', e => {
+  if (e.target.files[0]) importData(e.target.files[0]);
+  e.target.value = '';
+});
+
+// Search
+document.getElementById('search-input').addEventListener('input', e => {
+  searchQuery = e.target.value;
+  applySearch();
+});
+document.getElementById('search-clear').addEventListener('click', () => {
+  document.getElementById('search-input').value = '';
+  searchQuery = '';
+  applySearch();
+  document.getElementById('search-input').focus();
+});
+
+// Keyboard shortcuts
+document.addEventListener('keydown', e => {
+  const anyModalOpen = ['modal-task','modal-pin','modal-trash'].some(id =>
+    document.getElementById(id).classList.contains('show')
+  );
+  const focused = document.activeElement;
+  const isTyping = focused && (focused.tagName === 'INPUT' || focused.tagName === 'TEXTAREA' || focused.tagName === 'SELECT');
+
+  if (e.key === 'Escape') {
+    if (document.getElementById('modal-trash').classList.contains('show')) closeTrashModal();
+    else if (document.getElementById('modal-pin').classList.contains('show'))  closePinModal();
+    else if (document.getElementById('modal-task').classList.contains('show')) closeTaskModal();
+    else if (searchQuery) {
+      document.getElementById('search-input').value = '';
+      searchQuery = '';
+      applySearch();
+    }
+    return;
+  }
+
+  // N = quick-add (only when not typing and no modal open)
+  if ((e.key === 'n' || e.key === 'N') && !anyModalOpen && !isTyping) {
+    e.preventDefault();
+    openTaskModal('add', 'priority');
+  }
+
+  // / = focus search
+  if (e.key === '/' && !anyModalOpen && !isTyping) {
+    e.preventDefault();
+    document.getElementById('search-input').focus();
+  }
+});
+
+/* ──────────────────────────────────────────────
+   Boot
+   ────────────────────────────────────────────── */
+if (sessionStorage.getItem(SESSION_KEY) === '1') {
+  document.getElementById('pin-gate').classList.add('hidden');
+  document.getElementById('app').classList.remove('hidden');
+  bootApp();
+}
+</script>
+</body>
+</html>
