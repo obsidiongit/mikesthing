@@ -242,12 +242,13 @@
     display: flex;
     align-items: flex-start;
     gap: 12px;
-    padding: 14px 16px;
+    padding: 14px 16px 14px 13px;
     background: var(--surface2);
     cursor: pointer;
     transition: background 0.12s;
     user-select: none;
     position: relative;
+    border-left: 3px solid transparent;
   }
   .task-row:hover { background: #1a1a1a; }
   .task-row.done { opacity: 0.42; }
@@ -324,6 +325,38 @@
     border: 1px solid var(--border);
     letter-spacing: 0.04em;
   }
+
+  /* Status & importance (Notion-style) */
+  .status-pill {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: none;
+  }
+  .status-not_started { background: #252525; color: #9a9a9a; }
+  .status-in_progress { background: #152535; color: #7eb8ff; }
+  .status-blocked     { background: #2a1818; color: #e88888; }
+  .status-archived    { background: #222018; color: #a89868; }
+
+  .prio-pill {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid transparent;
+  }
+  .prio-pill.prio-low    { background: #1e1e22; color: #9ca3af; border-color: #333338; }
+  .prio-pill.prio-medium { background: #241c0a; color: #d4a534; border-color: #4a3a12; }
+  .prio-pill.prio-high   { background: #28160a; color: #e8935c; border-color: #5a3018; }
+  .prio-pill.prio-urgent { background: #280f0f; color: #f07171; border-color: #5a2020; }
+
+  .task-row.paccent-low    { border-left-color: #6b7280; }
+  .task-row.paccent-medium { border-left-color: #c9a227; }
+  .task-row.paccent-high   { border-left-color: #d97834; }
+  .task-row.paccent-urgent { border-left-color: #c44; }
 
   .task-sub { font-size: 13px; color: var(--muted); line-height: 1.45; margin-top: 4px; }
 
@@ -630,6 +663,25 @@
     <div class="field">
       <label for="f-due">Due date (optional)</label>
       <input type="date" id="f-due">
+    </div>
+    <div class="field">
+      <label for="f-status">Status</label>
+      <select id="f-status">
+        <option value="not_started">Not started</option>
+        <option value="in_progress">In progress</option>
+        <option value="blocked">Blocked</option>
+        <option value="archived">Archived</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="f-prio">Importance</label>
+      <select id="f-prio">
+        <option value="none">None</option>
+        <option value="low">Low</option>
+        <option value="medium">Medium</option>
+        <option value="high">High</option>
+        <option value="urgent">Urgent</option>
+      </select>
     </div>
     <div class="field">
       <label for="f-freq">Recurrence</label>
@@ -1070,6 +1122,25 @@ function escapeHtml(s) {
 const FREQ_LABEL = { daily: 'Daily', weekly: 'Weekly', 'one-time': 'One-time' };
 const CAT_LABEL  = { priority: 'Priority', active: 'Active', later: 'Later' };
 
+const TASK_STATUSES = ['not_started', 'in_progress', 'blocked', 'archived'];
+const TASK_PRIOS    = ['none', 'low', 'medium', 'high', 'urgent'];
+const STATUS_LABEL = {
+  not_started: 'Not started',
+  in_progress: 'In progress',
+  blocked:     'Blocked',
+  archived:    'Archived'
+};
+const PRIO_LABEL = { none: '', low: 'Low', medium: 'Medium', high: 'High', urgent: 'Urgent' };
+
+function normalizeTaskStatus(t) {
+  const s = t && t.status;
+  return TASK_STATUSES.includes(s) ? s : 'not_started';
+}
+function normalizeTaskPrio(t) {
+  const p = t && t.prio;
+  return TASK_PRIOS.includes(p) ? p : 'none';
+}
+
 /* ──────────────────────────────────────────────
    Drag-and-drop state
    ────────────────────────────────────────────── */
@@ -1089,10 +1160,18 @@ function clearDropIndicators() {
    ────────────────────────────────────────────── */
 function buildTaskRow(task, compact, cat) {
   const done = isDone(task);
+  const st = normalizeTaskStatus(task);
+  const pr = normalizeTaskPrio(task);
   const row = document.createElement('div');
   row.className = 'task-row' + (done ? ' done' : '');
+  if (pr !== 'none') row.classList.add('paccent-' + pr);
   row.dataset.id = task.id;
-  row.dataset.searchText = ((task.name || '') + ' ' + (task.sub || '')).toLowerCase();
+  row.dataset.searchText = [
+    (task.name || ''),
+    (task.sub || ''),
+    STATUS_LABEL[st] || '',
+    PRIO_LABEL[pr] || ''
+  ].join(' ').toLowerCase();
 
   // Drag handle (non-compact only)
   if (!compact) {
@@ -1153,6 +1232,18 @@ function buildTaskRow(task, compact, cat) {
   tag.className = 'task-tag';
   tag.textContent = FREQ_LABEL[task.freq] || task.freq;
   meta.appendChild(tag);
+
+  const stPill = document.createElement('span');
+  stPill.className = 'status-pill status-' + st;
+  stPill.textContent = STATUS_LABEL[st];
+  meta.appendChild(stPill);
+
+  if (pr !== 'none') {
+    const prPill = document.createElement('span');
+    prPill.className = 'prio-pill prio-' + pr;
+    prPill.textContent = PRIO_LABEL[pr];
+    meta.appendChild(prPill);
+  }
 
   // Due date badge
   const dueBadge = getDueBadge(task.due);
@@ -1397,6 +1488,8 @@ function openTaskModal(mode, cat, taskId) {
     document.getElementById('f-sub').value  = '';
     document.getElementById('f-due').value  = '';
     document.getElementById('f-freq').value = 'one-time';
+    document.getElementById('f-status').value = 'not_started';
+    document.getElementById('f-prio').value = 'none';
   } else {
     titleEl.textContent = 'Edit task';
     const found = findTaskAndCategory(taskId);
@@ -1407,6 +1500,8 @@ function openTaskModal(mode, cat, taskId) {
     document.getElementById('f-sub').value  = t.sub || '';
     document.getElementById('f-due').value  = t.due || '';
     document.getElementById('f-freq').value = t.freq;
+    document.getElementById('f-status').value = normalizeTaskStatus(t);
+    document.getElementById('f-prio').value = normalizeTaskPrio(t);
   }
   document.getElementById('modal-task').classList.add('show');
   setTimeout(() => document.getElementById('f-name').focus(), 30);
@@ -1424,9 +1519,11 @@ function saveTaskModal() {
   const due  = document.getElementById('f-due').value;
   const freq = document.getElementById('f-freq').value;
   const cat  = document.getElementById('f-cat').value;
+  const status = document.getElementById('f-status').value;
+  const prio   = document.getElementById('f-prio').value;
 
   if (modalMode === 'add') {
-    const task = { id: genTaskId(), name, freq, createdAt: Date.now() };
+    const task = { id: genTaskId(), name, freq, createdAt: Date.now(), status, prio };
     if (sub) task.sub = sub;
     if (due) task.due = due;
     TASK_DATA[cat].push(task);
@@ -1437,6 +1534,8 @@ function saveTaskModal() {
     if (t.freq !== freq) clearDoneForTask(t);
     t.name = name;
     t.freq = freq;
+    t.status = status;
+    t.prio = prio;
     if (sub) t.sub = sub; else delete t.sub;
     if (due) t.due = due; else delete t.due;
     if (found.cat !== cat) {
