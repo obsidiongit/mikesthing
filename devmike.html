@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="manifest" href="/manifest.json">
 <title>Devmike — Obsidion</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -450,6 +454,61 @@
   }
   .search-active .no-results.show { display: block; }
 
+  /* ── Cloud sync ───────────────────────────── */
+  .sync-badge {
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--dim);
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    cursor: default;
+    user-select: none;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .sync-badge.clickable { cursor: pointer; }
+  .sync-badge.clickable:hover { border-color: var(--border-strong); color: var(--muted); }
+  .sync-badge.on { color: var(--muted); }
+  .sync-badge.warn { color: var(--accent-today); border-color: var(--accent-soon); }
+  .sync-badge.err { color: var(--error); border-color: #633; }
+  .sync-badge.working { color: var(--muted); }
+  .sync-help {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.55;
+    margin-bottom: 14px;
+  }
+  .sync-help strong { color: var(--text); font-weight: 600; }
+  .sync-sql-details {
+    font-size: 12px;
+    color: var(--muted);
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    padding: 10px 12px;
+    background: var(--surface2);
+  }
+  .sync-sql-details summary { cursor: pointer; color: var(--text); font-weight: 500; }
+  .sync-sql-details pre {
+    margin-top: 12px;
+    font-size: 11px;
+    line-height: 1.45;
+    overflow-x: auto;
+    color: var(--muted);
+    font-family: ui-monospace, monospace;
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  .sync-status-line {
+    font-size: 12px;
+    color: var(--dim);
+    min-height: 1.4em;
+    margin-bottom: 12px;
+  }
+  .sync-status-line.err { color: var(--error); }
+
   @media (max-width: 540px) {
     .app-header { flex-direction: column; align-items: flex-start; }
     .header-actions { width: 100%; }
@@ -462,6 +521,7 @@
   Devmike — internal task list. Client-side PIN is not real security.
   PIN is stored in localStorage. Default fallback: DEVMIKE_PIN_DEFAULT constant below.
   Press N to quick-add a task. Drag handles to reorder.
+  Optional Cloud sync (Supabase): same sync ID + URL/key on each device; data is not encrypted at rest on Supabase.
 -->
 
 <!-- PIN gate -->
@@ -487,6 +547,8 @@
       <div class="app-meta" id="header-date"></div>
     </div>
     <div class="header-actions">
+      <span class="sync-badge" id="sync-badge" title="Cloud sync status">Local only</span>
+      <button type="button" class="btn btn-ghost" id="btn-sync">Cloud sync</button>
       <button type="button" class="btn btn-ghost" id="btn-trash">Recover deleted</button>
       <button type="button" class="btn btn-ghost" id="btn-change-pin">Change PIN</button>
       <button type="button" class="btn btn-ghost" id="btn-lock">Lock</button>
@@ -616,6 +678,54 @@
   </div>
 </div>
 
+<!-- Cloud sync modal -->
+<div id="modal-sync" class="modal-overlay">
+  <div class="modal-box" style="max-width: 460px;">
+    <div class="modal-title">Cloud sync</div>
+    <p class="sync-help">Keeps this list on <strong>Supabase</strong> (free tier) so phone and desktop share the same tasks. Your <strong>sync ID</strong> acts like a password — use a long random value and store it somewhere safe.</p>
+    <details class="sync-sql-details">
+      <summary>One-time setup in Supabase</summary>
+      <p style="margin-top:10px;margin-bottom:8px">Create a project at supabase.com, open <strong>SQL Editor</strong>, run:</p>
+      <pre>create table devmike_sync (
+  id text primary key,
+  payload jsonb not null,
+  updated_at timestamptz not null default now()
+);
+alter table devmike_sync enable row level security;
+create policy "devmike_rw" on devmike_sync
+  for all using (true) with check (true);</pre>
+      <p style="margin-top:10px">Then copy <strong>Project URL</strong> and <strong>anon public</strong> key from Settings → API.</p>
+    </details>
+    <div class="field">
+      <label for="sync-url">Supabase project URL</label>
+      <input type="url" id="sync-url" placeholder="https://xxxx.supabase.co" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="sync-key">Supabase anon key</label>
+      <input type="password" id="sync-key" placeholder="eyJhbG…" autocomplete="off">
+    </div>
+    <div class="field">
+      <label for="sync-id">Sync ID (secret)</label>
+      <input type="text" id="sync-id" placeholder="Paste the same ID on every device" autocomplete="off" spellcheck="false">
+    </div>
+    <div class="field" style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <input type="checkbox" id="sync-auto" style="width:auto;">
+      <label for="sync-auto" style="margin:0;">Auto push changes &amp; pull when I return to this tab</label>
+    </div>
+    <p class="sync-status-line" id="sync-modal-status"></p>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modal-sync-cancel">Close</button>
+      <button type="button" class="btn" id="btn-sync-generate-id">New random ID</button>
+      <button type="button" class="btn" id="btn-sync-copy-id">Copy ID</button>
+    </div>
+    <div class="modal-actions" style="margin-top:8px;">
+      <button type="button" class="btn btn-ghost" id="btn-sync-pull">Pull from cloud</button>
+      <button type="button" class="btn btn-primary" id="btn-sync-save">Save &amp; test</button>
+      <button type="button" class="btn btn-primary" id="btn-sync-push">Push now</button>
+    </div>
+  </div>
+</div>
+
 <!-- Recover deleted modal -->
 <div id="modal-trash" class="modal-overlay">
   <div class="modal-box">
@@ -645,6 +755,13 @@ const SESSION_KEY   = 'devmike_unlock';
 const TRASH_MAX     = 50;
 const CATEGORIES    = ['priority', 'active', 'later'];
 
+const STORAGE_SYNC_URL         = 'devmike_supabase_url';
+const STORAGE_SYNC_KEY         = 'devmike_supabase_anon_key';
+const STORAGE_SYNC_ID          = 'devmike_sync_id';
+const STORAGE_SYNC_AUTO        = 'devmike_sync_auto';
+const STORAGE_SYNC_LAST_REMOTE = 'devmike_sync_last_remote_ts';
+const STORAGE_SYNC_DIRTY       = 'devmike_sync_dirty';
+
 function getPin()  { return localStorage.getItem(STORAGE_PIN) || DEVMIKE_PIN_DEFAULT; }
 function setPin(p) { localStorage.setItem(STORAGE_PIN, p); }
 
@@ -662,7 +779,11 @@ function loadTaskData() {
   return deepClone(DEFAULT_TASK_DATA);
 }
 let TASK_DATA = loadTaskData();
-function saveTaskData() { localStorage.setItem(STORAGE_TASKS, JSON.stringify(TASK_DATA)); }
+function saveTaskData() {
+  localStorage.setItem(STORAGE_TASKS, JSON.stringify(TASK_DATA));
+  markSyncDirty();
+  scheduleCloudPush();
+}
 
 function loadState() {
   try {
@@ -672,7 +793,11 @@ function loadState() {
   return { done: {} };
 }
 let state = loadState();
-function saveState() { localStorage.setItem(STORAGE_STATE, JSON.stringify(state)); }
+function saveState() {
+  localStorage.setItem(STORAGE_STATE, JSON.stringify(state));
+  markSyncDirty();
+  scheduleCloudPush();
+}
 
 function loadTrash() {
   try {
@@ -681,7 +806,183 @@ function loadTrash() {
   } catch(e) {}
   return [];
 }
-function saveTrash(arr) { localStorage.setItem(STORAGE_TRASH, JSON.stringify(arr)); }
+function saveTrash(arr) {
+  localStorage.setItem(STORAGE_TRASH, JSON.stringify(arr));
+  markSyncDirty();
+  scheduleCloudPush();
+}
+
+/* ──────────────────────────────────────────────
+   Cloud sync (Supabase REST, optional)
+   ────────────────────────────────────────────── */
+let cloudPushTimer = null;
+let syncPushInFlight = false;
+
+function getSyncConfig() {
+  const url = localStorage.getItem(STORAGE_SYNC_URL);
+  const key = localStorage.getItem(STORAGE_SYNC_KEY);
+  const id  = localStorage.getItem(STORAGE_SYNC_ID);
+  if (!url || !key || !id) return null;
+  const u = url.trim().replace(/\/$/, '');
+  if (!u || !key.trim() || !id.trim()) return null;
+  return { url: u, key: key.trim(), id: id.trim() };
+}
+
+function isSyncAuto() {
+  return localStorage.getItem(STORAGE_SYNC_AUTO) === '1';
+}
+
+function markSyncDirty() {
+  if (getSyncConfig()) localStorage.setItem(STORAGE_SYNC_DIRTY, '1');
+}
+
+function clearSyncDirty() {
+  localStorage.removeItem(STORAGE_SYNC_DIRTY);
+}
+
+function buildCloudPayload() {
+  return {
+    _version: 1,
+    tasks: deepClone(TASK_DATA),
+    state: deepClone(state),
+    trash: loadTrash()
+  };
+}
+
+function applyCloudPayload(data) {
+  if (!data.tasks || !CATEGORIES.every(c => Array.isArray(data.tasks[c]))) return false;
+  TASK_DATA = data.tasks;
+  state = data.state && data.state.done && typeof data.state.done === 'object'
+    ? data.state
+    : { done: {} };
+  const tr = Array.isArray(data.trash) ? data.trash : [];
+  localStorage.setItem(STORAGE_TASKS, JSON.stringify(TASK_DATA));
+  localStorage.setItem(STORAGE_STATE, JSON.stringify(state));
+  localStorage.setItem(STORAGE_TRASH, JSON.stringify(tr));
+  clearSyncDirty();
+  return true;
+}
+
+async function cloudPull(opts) {
+  const silent = opts && opts.silent;
+  const c = getSyncConfig();
+  if (!c) return { ok: false, message: 'Sync not configured.' };
+
+  try {
+    const u = `${c.url}/rest/v1/devmike_sync?id=eq.${encodeURIComponent(c.id)}&select=id,payload,updated_at`;
+    const r = await fetch(u, { headers: { apikey: c.key, Authorization: `Bearer ${c.key}` } });
+    if (!r.ok) {
+      const t = await r.text();
+      return { ok: false, message: t || r.statusText };
+    }
+    const rows = await r.json();
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return { ok: true, empty: true, message: 'No cloud row yet — push from this or another device.' };
+    }
+    const row = rows[0];
+    const remoteTs = row.updated_at;
+    const lastKnown = localStorage.getItem(STORAGE_SYNC_LAST_REMOTE);
+    const dirty = localStorage.getItem(STORAGE_SYNC_DIRTY) === '1';
+
+    if (lastKnown && remoteTs && remoteTs <= lastKnown && !dirty) {
+      return { ok: true, noop: true };
+    }
+
+    if (dirty) {
+      if (silent) return { ok: true, skipped: true, message: 'Local changes not pushed — open Cloud sync to resolve.' };
+      if (!confirm('You have unsaved local changes. Replace them with the cloud copy?')) return { ok: false, message: 'Cancelled.' };
+    }
+
+    const p = row.payload;
+    if (!p || typeof p !== 'object') return { ok: false, message: 'Invalid payload in cloud.' };
+    if (!applyCloudPayload(p)) return { ok: false, message: 'Invalid task data in cloud.' };
+
+    if (remoteTs) localStorage.setItem(STORAGE_SYNC_LAST_REMOTE, remoteTs);
+    return { ok: true, applied: true };
+  } catch (e) {
+    return { ok: false, message: e.message || String(e) };
+  }
+}
+
+async function cloudPush() {
+  const c = getSyncConfig();
+  if (!c || syncPushInFlight) return { ok: false, message: 'Busy or not configured.' };
+  syncPushInFlight = true;
+  updateSyncBadge('working', 'Saving to cloud…');
+  try {
+    const payload = buildCloudPayload();
+    const updated_at = new Date().toISOString();
+    const body = [{ id: c.id, payload, updated_at }];
+    const r = await fetch(`${c.url}/rest/v1/devmike_sync?on_conflict=id`, {
+      method: 'POST',
+      headers: {
+        apikey: c.key,
+        Authorization: `Bearer ${c.key}`,
+        'Content-Type': 'application/json',
+        Prefer: 'resolution=merge-duplicates,return=representation'
+      },
+      body: JSON.stringify(body)
+    });
+    if (!r.ok) {
+      const t = await r.text();
+      updateSyncBadge('err', 'Cloud save failed');
+      return { ok: false, message: t || r.statusText };
+    }
+    const rows = await r.json();
+    const row = Array.isArray(rows) && rows[0];
+    if (row && row.updated_at) localStorage.setItem(STORAGE_SYNC_LAST_REMOTE, row.updated_at);
+    else localStorage.setItem(STORAGE_SYNC_LAST_REMOTE, updated_at);
+    clearSyncDirty();
+    updateSyncBadge('on', 'Synced');
+    return { ok: true };
+  } catch (e) {
+    updateSyncBadge('err', 'Cloud offline?');
+    return { ok: false, message: e.message || String(e) };
+  } finally {
+    syncPushInFlight = false;
+  }
+}
+
+function scheduleCloudPush() {
+  if (!getSyncConfig() || !isSyncAuto()) return;
+  clearTimeout(cloudPushTimer);
+  cloudPushTimer = setTimeout(() => { cloudPush(); }, 2200);
+}
+
+function updateSyncBadge(mode, title) {
+  const el = document.getElementById('sync-badge');
+  if (!el) return;
+  el.className = 'sync-badge';
+  if (!getSyncConfig()) {
+    el.textContent = 'Local only';
+    el.title = 'Data stays in this browser until you set up Cloud sync';
+    el.classList.remove('clickable');
+    return;
+  }
+  el.classList.add('clickable');
+  el.onclick = () => openSyncModal();
+  if (mode === 'working') {
+    el.classList.add('working');
+    el.textContent = title || 'Syncing…';
+    el.title = title || '';
+    return;
+  }
+  if (mode === 'err') {
+    el.classList.add('err');
+    el.textContent = title || 'Sync error';
+    el.title = title || 'Click to open Cloud sync';
+    return;
+  }
+  if (localStorage.getItem(STORAGE_SYNC_DIRTY) === '1') {
+    el.classList.add('warn');
+    el.textContent = isSyncAuto() ? 'Upload pending…' : 'Not uploaded — tap Sync';
+    el.title = 'Local changes waiting to upload (or turn on auto sync)';
+    return;
+  }
+  el.classList.add('on');
+  el.textContent = title || 'Cloud on';
+  el.title = title || 'Click to manage Cloud sync';
+}
 
 /* ──────────────────────────────────────────────
    Date helpers
@@ -1341,7 +1642,118 @@ function tryUnlock() {
   bootApp();
 }
 function lockApp() { sessionStorage.removeItem(SESSION_KEY); location.reload(); }
-function bootApp() { render(); }
+
+function setSyncModalStatus(msg, isErr) {
+  const el = document.getElementById('sync-modal-status');
+  if (!el) return;
+  el.textContent = msg || '';
+  el.classList.toggle('err', !!isErr);
+}
+
+function openSyncModal() {
+  document.getElementById('sync-url').value = localStorage.getItem(STORAGE_SYNC_URL) || '';
+  document.getElementById('sync-key').value = localStorage.getItem(STORAGE_SYNC_KEY) || '';
+  document.getElementById('sync-id').value = localStorage.getItem(STORAGE_SYNC_ID) || '';
+  document.getElementById('sync-auto').checked = isSyncAuto();
+  setSyncModalStatus('');
+  document.getElementById('modal-sync').classList.add('show');
+  setTimeout(() => document.getElementById('sync-url').focus(), 30);
+}
+
+function closeSyncModal() {
+  document.getElementById('modal-sync').classList.remove('show');
+}
+
+async function saveSyncSettings() {
+  const url = document.getElementById('sync-url').value.trim();
+  const key = document.getElementById('sync-key').value.trim();
+  const id = document.getElementById('sync-id').value.trim();
+  if (!url || !key || !id) {
+    setSyncModalStatus('Enter project URL, anon key, and sync ID.', true);
+    return;
+  }
+  const prevUrl = localStorage.getItem(STORAGE_SYNC_URL);
+  const prevId = localStorage.getItem(STORAGE_SYNC_ID);
+  if (prevUrl !== url || prevId !== id) {
+    localStorage.removeItem(STORAGE_SYNC_LAST_REMOTE);
+  }
+  localStorage.setItem(STORAGE_SYNC_URL, url);
+  localStorage.setItem(STORAGE_SYNC_KEY, key);
+  localStorage.setItem(STORAGE_SYNC_ID, id);
+  localStorage.setItem(STORAGE_SYNC_AUTO, document.getElementById('sync-auto').checked ? '1' : '0');
+  setSyncModalStatus('Testing connection…');
+  const base = url.replace(/\/$/, '');
+  try {
+    const r = await fetch(
+      `${base}/rest/v1/devmike_sync?id=eq.${encodeURIComponent(id)}&select=id`,
+      { headers: { apikey: key, Authorization: `Bearer ${key}` } }
+    );
+    if (!r.ok) {
+      const t = await r.text();
+      setSyncModalStatus((t || r.statusText).slice(0, 280), true);
+      updateSyncBadge('err', 'Sync config error');
+      return;
+    }
+    updateSyncBadge();
+    const pullRes = await cloudPull({ silent: true });
+    if (pullRes.ok && pullRes.applied) {
+      render();
+      updateTrashLabel();
+      setSyncModalStatus('Loaded the latest list from the cloud.');
+    } else if (pullRes.ok && pullRes.empty) {
+      setSyncModalStatus('No cloud copy yet — uploading from this device…');
+      scheduleCloudPush();
+    } else if (pullRes.ok && pullRes.noop) {
+      setSyncModalStatus('Connection OK. Saving any pending local changes…');
+      scheduleCloudPush();
+    } else if (pullRes.ok && pullRes.skipped) {
+      setSyncModalStatus(pullRes.message || 'Skipped pull.');
+      scheduleCloudPush();
+    } else if (!pullRes.ok) {
+      setSyncModalStatus(pullRes.message || 'Pull failed', true);
+      updateSyncBadge('err', 'Sync error');
+    } else {
+      scheduleCloudPush();
+    }
+  } catch (e) {
+    setSyncModalStatus(e.message || String(e), true);
+    updateSyncBadge('err', 'Sync error');
+  }
+}
+
+let devmikeSyncListenersBound = false;
+
+function bootApp() {
+  render();
+  updateSyncBadge();
+
+  if (!devmikeSyncListenersBound) {
+    devmikeSyncListenersBound = true;
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') return;
+      if (!getSyncConfig() || !isSyncAuto()) return;
+      cloudPull({ silent: true }).then(res => {
+        if (res.ok && res.applied) render();
+        updateSyncBadge();
+      });
+    });
+    window.addEventListener('online', () => {
+      if (getSyncConfig() && isSyncAuto() && localStorage.getItem(STORAGE_SYNC_DIRTY) === '1') {
+        scheduleCloudPush();
+      }
+      updateSyncBadge();
+    });
+  }
+
+  if (getSyncConfig() && isSyncAuto()) {
+    cloudPull({ silent: true }).then(res => {
+      if (res.ok && res.applied) render();
+      if (!res.ok && res.message && !res.skipped) updateSyncBadge('err', 'Cloud sync failed');
+      else updateSyncBadge();
+      if (localStorage.getItem(STORAGE_SYNC_DIRTY) === '1') scheduleCloudPush();
+    });
+  }
+}
 
 /* ──────────────────────────────────────────────
    Event listeners
@@ -1361,6 +1773,39 @@ document.getElementById('f-name').addEventListener('keydown', e => { if (e.key =
 // Add task buttons
 document.querySelectorAll('.btn-add-task').forEach(btn => {
   btn.addEventListener('click', () => openTaskModal('add', btn.dataset.cat));
+});
+
+// Cloud sync
+document.getElementById('btn-sync').addEventListener('click', openSyncModal);
+document.getElementById('modal-sync-cancel').addEventListener('click', closeSyncModal);
+document.getElementById('modal-sync').addEventListener('click', e => { if (e.target.id === 'modal-sync') closeSyncModal(); });
+document.querySelector('#modal-sync .modal-box').addEventListener('click', e => e.stopPropagation());
+document.getElementById('btn-sync-generate-id').addEventListener('click', () => {
+  document.getElementById('sync-id').value = crypto.randomUUID();
+  setSyncModalStatus('New ID generated — save settings, then use the same ID on other devices.');
+});
+document.getElementById('btn-sync-copy-id').addEventListener('click', () => {
+  const v = document.getElementById('sync-id').value.trim();
+  if (!v) { setSyncModalStatus('Nothing to copy.', true); return; }
+  navigator.clipboard.writeText(v).then(() => setSyncModalStatus('Sync ID copied.')).catch(() => setSyncModalStatus('Could not copy — select and copy manually.', true));
+});
+document.getElementById('btn-sync-save').addEventListener('click', () => saveSyncSettings());
+document.getElementById('btn-sync-push').addEventListener('click', () => {
+  cloudPush().then(r => {
+    if (r.message && !r.ok) setSyncModalStatus(r.message.slice(0, 280), true);
+    else if (r.ok) setSyncModalStatus('Uploaded to cloud.');
+    updateSyncBadge();
+  });
+});
+document.getElementById('btn-sync-pull').addEventListener('click', () => {
+  cloudPull({ silent: false }).then(r => {
+    if (r.ok && r.applied) { render(); setSyncModalStatus('Loaded from cloud.'); }
+    else if (r.ok && r.empty) setSyncModalStatus(r.message || 'No data in cloud yet.');
+    else if (r.ok && r.noop) setSyncModalStatus('Already up to date.');
+    else if (r.ok && r.skipped) setSyncModalStatus(r.message || 'Skipped.');
+    else if (!r.ok && r.message) setSyncModalStatus(r.message, true);
+    updateSyncBadge();
+  });
 });
 
 // Change PIN modal
@@ -1406,7 +1851,7 @@ document.getElementById('search-clear').addEventListener('click', () => {
 
 // Keyboard shortcuts
 document.addEventListener('keydown', e => {
-  const anyModalOpen = ['modal-task','modal-pin','modal-trash'].some(id =>
+  const anyModalOpen = ['modal-task','modal-pin','modal-trash','modal-sync'].some(id =>
     document.getElementById(id).classList.contains('show')
   );
   const focused = document.activeElement;
@@ -1414,6 +1859,7 @@ document.addEventListener('keydown', e => {
 
   if (e.key === 'Escape') {
     if (document.getElementById('modal-trash').classList.contains('show')) closeTrashModal();
+    else if (document.getElementById('modal-sync').classList.contains('show')) closeSyncModal();
     else if (document.getElementById('modal-pin').classList.contains('show'))  closePinModal();
     else if (document.getElementById('modal-task').classList.contains('show')) closeTaskModal();
     else if (searchQuery) {
