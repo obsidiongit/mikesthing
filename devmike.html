@@ -41,6 +41,7 @@
   }
 
   .hidden { display: none !important; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
 
   /* ── PIN gate ─────────────────────────────── */
   .pin-gate {
@@ -687,6 +688,22 @@
   .scratchpad-charcount { flex-shrink: 0; color: var(--dim); }
   .scratchpad-save-flash { font-size: 11px; color: var(--muted); opacity: 0; transition: opacity 0.3s; }
   .scratchpad-save-flash.show { opacity: 1; }
+  .scratchpad-compose { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .scratchpad-compose-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+  .scratchpad-compose-row select {
+    font-family: var(--font); font-size: 12px; padding: 8px 10px; border: 1px solid var(--border);
+    background: var(--bg); color: var(--text); min-width: 140px;
+  }
+  .scratchpad-list { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+  .scratch-note {
+    display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-left: 4px solid var(--scratch-tag, #555);
+  }
+  .scratch-note-body { flex: 1; min-width: 0; font-size: 13px; line-height: 1.45; color: var(--text); white-space: pre-wrap; word-break: break-word; }
+  .scratch-note-meta { font-size: 10px; color: var(--dim); margin-top: 6px; }
+  .scratch-note-del { flex-shrink: 0; font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--font); }
+  .scratch-note-del:hover { color: var(--error); border-color: #633; }
 
   /* ── Habit Tracker Panel ─────────────────── */
   .habits-panel { border: 1px solid var(--border); background: var(--surface); margin-bottom: 28px; }
@@ -750,6 +767,34 @@
   .calendar-task-prio-dot.prio-urgent { background: #f07171; }
   .calendar-day-add { font-size: 11px; font-weight: 500; padding: 4px 6px; background: transparent; border: 1px solid var(--border); color: var(--muted); cursor: pointer; font-family: var(--font); text-align: center; width: 100%; }
   .calendar-day-add:hover { color: var(--text); border-color: var(--border-strong); }
+
+  .calendar-view-toggle { display: flex; gap: 4px; flex-wrap: wrap; }
+  .calendar-view-btn {
+    font-family: var(--font); font-size: 11px; font-weight: 500; padding: 6px 12px;
+    border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer;
+  }
+  .calendar-view-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .calendar-view-btn.active { background: var(--surface2); color: var(--white); border-color: var(--border-strong); }
+
+  .calendar-days.view-day { flex-direction: column; max-width: 520px; margin: 0 auto; }
+  .calendar-days.view-day .calendar-day { min-width: 100%; flex: none; }
+
+  .calendar-month-wrap { padding: 12px; background: var(--surface); overflow-x: auto; }
+  .calendar-month-title { font-size: 13px; font-weight: 600; color: var(--white); text-align: center; margin-bottom: 10px; letter-spacing: 0.02em; }
+  .calendar-month-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); min-width: 280px; }
+  .calendar-month-dow { font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding: 6px 4px; text-align: center; background: var(--surface2); }
+  .calendar-month-cell {
+    min-height: 76px; padding: 6px; background: var(--surface2); display: flex; flex-direction: column; gap: 4px;
+    font-size: 11px; cursor: default;
+  }
+  .calendar-month-cell.other-month { opacity: 0.38; }
+  .calendar-month-cell.today { box-shadow: inset 0 0 0 2px var(--accent-today); background: rgba(200,150,58,0.05); }
+  .calendar-month-date { font-weight: 600; color: var(--muted); }
+  .calendar-month-cell.today .calendar-month-date { color: var(--accent-today); }
+  .calendar-month-tasks { display: flex; flex-direction: column; gap: 2px; flex: 1; min-height: 0; overflow: hidden; }
+  .calendar-month-task { font-size: 10px; padding: 3px 5px; background: var(--bg); border: 1px solid var(--border); cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
+  .calendar-month-task:hover { border-color: var(--border-strong); }
+  .calendar-month-more { font-size: 9px; color: var(--dim); }
 
   /* ── Goals / OKRs Panel ──────────────────── */
   .goals-panel { border: 1px solid var(--border); background: var(--surface); margin-bottom: 28px; }
@@ -938,31 +983,44 @@
       <span class="scratchpad-toggle-icon" id="scratchpad-toggle-icon">▾</span>
     </div>
     <div class="scratchpad-body" id="scratchpad-body">
-      <div style="position:relative;">
-        <textarea id="scratchpad-textarea" class="scratchpad-textarea" placeholder="Brain dumps, ideas, phone numbers, anything quick…" autocomplete="off" spellcheck="false"></textarea>
+      <div class="scratchpad-compose">
+        <textarea id="scratchpad-new" class="scratchpad-textarea" placeholder="Type a note, pick a tag, then Add note…" autocomplete="off" spellcheck="true" rows="3"></textarea>
+        <div class="scratchpad-compose-row">
+          <label for="scratchpad-new-tag" class="sr-only">Tag color</label>
+          <select id="scratchpad-new-tag" aria-label="Note tag color"></select>
+          <button type="button" class="btn btn-primary" id="scratchpad-add-btn">Add note</button>
+        </div>
       </div>
+      <div id="scratchpad-list" class="scratchpad-list"></div>
       <div class="scratchpad-footer">
-        <div class="scratchpad-charcount" id="scratchpad-charcount">0 chars</div>
+        <div class="scratchpad-charcount" id="scratchpad-count-label">0 notes</div>
         <span class="scratchpad-save-flash" id="scratchpad-save-flash">Saved</span>
-        <button type="button" class="btn btn-ghost" id="scratchpad-clear-btn">Clear</button>
+        <button type="button" class="btn btn-ghost" id="scratchpad-clear-btn">Clear all</button>
       </div>
     </div>
   </div>
 
-  <!-- Weekly Calendar -->
+  <!-- Calendar / schedule -->
   <div class="calendar-panel" id="calendar-panel">
     <div class="calendar-head">
-      <span>Weekly Schedule</span>
+      <span id="cal-panel-title">Schedule</span>
       <button type="button" class="calendar-toggle" id="calendar-toggle">▾</button>
     </div>
     <div id="calendar-content">
       <div class="calendar-controls">
+        <div class="calendar-view-toggle" id="cal-view-toggle">
+          <button type="button" class="calendar-view-btn" data-cal-view="day">Day</button>
+          <button type="button" class="calendar-view-btn" data-cal-view="week">Week</button>
+          <button type="button" class="calendar-view-btn" data-cal-view="month">Month</button>
+        </div>
         <button type="button" class="calendar-nav-btn" id="cal-prev">← Prev</button>
         <button type="button" class="calendar-nav-btn" id="cal-today">Today</button>
         <button type="button" class="calendar-nav-btn" id="cal-next">Next →</button>
         <div class="calendar-date-range" id="cal-date-range"></div>
       </div>
-      <div class="calendar-days" id="calendar-days"></div>
+      <div id="calendar-main">
+        <div class="calendar-days" id="calendar-days"></div>
+      </div>
     </div>
   </div>
 
@@ -1310,6 +1368,53 @@ const STORAGE_SYNC_AUTO        = 'devmike_sync_auto';
 const STORAGE_SYNC_LAST_REMOTE = 'devmike_sync_last_remote_ts';
 const STORAGE_SYNC_DIRTY       = 'devmike_sync_dirty';
 
+const STORAGE_SCRATCH_NOTES = 'dm_scratch_notes_v1';
+const STORAGE_SCRATCHPAD_LEGACY = 'dm_scratchpad';
+const STORAGE_CAL_VIEW = 'dm_cal_view';
+const STORAGE_CAL_WEEK_OFF = 'dm_cal_week_off';
+const STORAGE_CAL_DAY_OFF = 'dm_cal_day_off';
+const STORAGE_CAL_MONTH_OFF = 'dm_cal_month_off';
+
+const SCRATCH_TAGS = [
+  { id: 'gray', label: 'General', color: '#6b7280' },
+  { id: 'blue', label: 'Work', color: '#5b8fc7' },
+  { id: 'green', label: 'Personal', color: '#5a9a6e' },
+  { id: 'yellow', label: 'Ideas', color: '#c9a227' },
+  { id: 'orange', label: 'Projects', color: '#d97834' },
+  { id: 'red', label: 'Important', color: '#c44' },
+  { id: 'purple', label: 'Later', color: '#9b7bc4' },
+  { id: 'pink', label: 'Fun', color: '#c97b9a' }
+];
+
+function getScratchTagMeta(tagId) {
+  return SCRATCH_TAGS.find(t => t.id === tagId) || SCRATCH_TAGS[0];
+}
+
+function loadScratchNotes() {
+  try {
+    const raw = localStorage.getItem(STORAGE_SCRATCH_NOTES);
+    if (raw) {
+      const a = JSON.parse(raw);
+      if (Array.isArray(a)) return a.filter(n => n && typeof n.text === 'string');
+    }
+  } catch (e) {}
+  const legacy = localStorage.getItem(STORAGE_SCRATCHPAD_LEGACY);
+  if (legacy && legacy.trim()) {
+    const migrated = [{ id: 'mig_' + Date.now(), text: legacy.trim(), tag: 'gray', createdAt: Date.now() }];
+    localStorage.setItem(STORAGE_SCRATCH_NOTES, JSON.stringify(migrated));
+    localStorage.removeItem(STORAGE_SCRATCHPAD_LEGACY);
+    markSyncDirty();
+    return migrated;
+  }
+  return [];
+}
+
+function saveScratchNotes(arr) {
+  localStorage.setItem(STORAGE_SCRATCH_NOTES, JSON.stringify(arr));
+  markSyncDirty();
+  scheduleCloudPush();
+}
+
 function getStoredPin() {
   const p = localStorage.getItem(STORAGE_PIN);
   return p && /^\d{4}$/.test(p) ? p : null;
@@ -1422,6 +1527,11 @@ function buildCloudPayload() {
   };
   const pin = getStoredPin();
   if (pin) o.pin = pin;
+  o.scratchNotes = deepClone(loadScratchNotes());
+  o.calendarViewMode = localStorage.getItem(STORAGE_CAL_VIEW) || 'week';
+  o.calendarWeekOffset = Number(localStorage.getItem(STORAGE_CAL_WEEK_OFF) || 0) || 0;
+  o.calendarDayOffset = Number(localStorage.getItem(STORAGE_CAL_DAY_OFF) || 0) || 0;
+  o.calendarMonthOffset = Number(localStorage.getItem(STORAGE_CAL_MONTH_OFF) || 0) || 0;
   return o;
 }
 
@@ -1436,6 +1546,27 @@ function applyCloudPayload(data) {
   localStorage.setItem(STORAGE_STATE, JSON.stringify(state));
   localStorage.setItem(STORAGE_TRASH, JSON.stringify(tr));
   applyPinFromPayload(data);
+  if (Array.isArray(data.scratchNotes)) {
+    const cleaned = data.scratchNotes.filter(n => n && typeof n.text === 'string').map(n => ({
+      id: typeof n.id === 'string' ? n.id : 'sn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8),
+      text: n.text.slice(0, 5000),
+      tag: SCRATCH_TAGS.some(t => t.id === n.tag) ? n.tag : 'gray',
+      createdAt: typeof n.createdAt === 'number' ? n.createdAt : Date.now()
+    }));
+    localStorage.setItem(STORAGE_SCRATCH_NOTES, JSON.stringify(cleaned));
+  }
+  if (data.calendarViewMode === 'day' || data.calendarViewMode === 'week' || data.calendarViewMode === 'month') {
+    localStorage.setItem(STORAGE_CAL_VIEW, data.calendarViewMode);
+  }
+  if (typeof data.calendarWeekOffset === 'number' && !Number.isNaN(data.calendarWeekOffset)) {
+    localStorage.setItem(STORAGE_CAL_WEEK_OFF, String(data.calendarWeekOffset));
+  }
+  if (typeof data.calendarDayOffset === 'number' && !Number.isNaN(data.calendarDayOffset)) {
+    localStorage.setItem(STORAGE_CAL_DAY_OFF, String(data.calendarDayOffset));
+  }
+  if (typeof data.calendarMonthOffset === 'number' && !Number.isNaN(data.calendarMonthOffset)) {
+    localStorage.setItem(STORAGE_CAL_MONTH_OFF, String(data.calendarMonthOffset));
+  }
   clearSyncDirty();
   return true;
 }
@@ -2051,6 +2182,7 @@ function render() {
 
   updateDailyCount();
   updateTrashLabel();
+  if (typeof renderScratchpadList === 'function') renderScratchpadList();
   applySearch(); // re-apply search filter after re-render
 }
 
@@ -2347,7 +2479,12 @@ function exportData() {
     exportedAt: new Date().toISOString(),
     tasks: deepClone(TASK_DATA),
     state: deepClone(state),
-    trash: loadTrash()
+    trash: loadTrash(),
+    scratchNotes: deepClone(loadScratchNotes()),
+    calendarViewMode: localStorage.getItem(STORAGE_CAL_VIEW) || 'week',
+    calendarWeekOffset: Number(localStorage.getItem(STORAGE_CAL_WEEK_OFF) || 0) || 0,
+    calendarDayOffset: Number(localStorage.getItem(STORAGE_CAL_DAY_OFF) || 0) || 0,
+    calendarMonthOffset: Number(localStorage.getItem(STORAGE_CAL_MONTH_OFF) || 0) || 0
   };
   const pin = getStoredPin();
   if (pin) payload.pin = pin;
@@ -2375,6 +2512,27 @@ function importData(file) {
       saveTaskData(); saveState();
       if (Array.isArray(data.trash)) saveTrash(data.trash);
       applyPinFromPayload(data);
+      if (Array.isArray(data.scratchNotes)) {
+        const cleaned = data.scratchNotes.filter(n => n && typeof n.text === 'string').map(n => ({
+          id: typeof n.id === 'string' ? n.id : 'sn_' + Date.now(),
+          text: n.text.slice(0, 5000),
+          tag: SCRATCH_TAGS.some(t => t.id === n.tag) ? n.tag : 'gray',
+          createdAt: typeof n.createdAt === 'number' ? n.createdAt : Date.now()
+        }));
+        localStorage.setItem(STORAGE_SCRATCH_NOTES, JSON.stringify(cleaned));
+      }
+      if (data.calendarViewMode === 'day' || data.calendarViewMode === 'week' || data.calendarViewMode === 'month') {
+        localStorage.setItem(STORAGE_CAL_VIEW, data.calendarViewMode);
+      }
+      if (typeof data.calendarWeekOffset === 'number' && !Number.isNaN(data.calendarWeekOffset)) {
+        localStorage.setItem(STORAGE_CAL_WEEK_OFF, String(data.calendarWeekOffset));
+      }
+      if (typeof data.calendarDayOffset === 'number' && !Number.isNaN(data.calendarDayOffset)) {
+        localStorage.setItem(STORAGE_CAL_DAY_OFF, String(data.calendarDayOffset));
+      }
+      if (typeof data.calendarMonthOffset === 'number' && !Number.isNaN(data.calendarMonthOffset)) {
+        localStorage.setItem(STORAGE_CAL_MONTH_OFF, String(data.calendarMonthOffset));
+      }
       markSyncDirty();
       scheduleCloudPush();
       render();
@@ -2837,35 +2995,85 @@ function initLinksPanel() {
 }
 
 /* ──────────────────────────────────────────────
-   SCRATCHPAD PANEL
+   SCRATCHPAD PANEL (multi-note + tags)
    ────────────────────────────────────────────── */
-const STORAGE_SCRATCHPAD = 'dm_scratchpad';
 const STORAGE_SCRATCHPAD_OPEN = 'dm_scratchpad_open';
-let scratchpadSaveTimer = null;
+
+function renderScratchpadList() {
+  const list = document.getElementById('scratchpad-list');
+  const countEl = document.getElementById('scratchpad-count-label');
+  if (!list || !countEl) return;
+  const notes = loadScratchNotes().slice().sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+  countEl.textContent = notes.length + (notes.length === 1 ? ' note' : ' notes');
+  list.innerHTML = '';
+  if (!notes.length) {
+    list.innerHTML = '<div class="empty-trash" style="padding:16px;text-align:center">No notes yet — add one above.</div>';
+    return;
+  }
+  notes.forEach(n => {
+    const meta = getScratchTagMeta(n.tag);
+    const row = document.createElement('div');
+    row.className = 'scratch-note';
+    row.style.setProperty('--scratch-tag', meta.color);
+    const body = document.createElement('div');
+    body.className = 'scratch-note-body';
+    const textDiv = document.createElement('div');
+    textDiv.textContent = n.text;
+    const metaRow = document.createElement('div');
+    metaRow.className = 'scratch-note-meta';
+    const ts = n.createdAt ? new Date(n.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
+    metaRow.textContent = [meta.label, ts].filter(Boolean).join(' · ');
+    body.appendChild(textDiv);
+    body.appendChild(metaRow);
+    const del = document.createElement('button');
+    del.type = 'button';
+    del.className = 'scratch-note-del';
+    del.textContent = 'Delete';
+    del.addEventListener('click', e => {
+      e.stopPropagation();
+      if (!confirm('Delete this note?')) return;
+      saveScratchNotes(loadScratchNotes().filter(x => x.id !== n.id));
+      renderScratchpadList();
+    });
+    row.appendChild(body);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
 
 function initScratchpad() {
-  const textarea = document.getElementById('scratchpad-textarea');
   const head = document.getElementById('scratchpad-head');
   const body = document.getElementById('scratchpad-body');
   const clearBtn = document.getElementById('scratchpad-clear-btn');
-  const countEl = document.getElementById('scratchpad-charcount');
   const flash = document.getElementById('scratchpad-save-flash');
+  const newTa = document.getElementById('scratchpad-new');
+  const tagSel = document.getElementById('scratchpad-new-tag');
+  const addBtn = document.getElementById('scratchpad-add-btn');
 
-  textarea.value = localStorage.getItem(STORAGE_SCRATCHPAD) || '';
-  countEl.textContent = textarea.value.length.toLocaleString() + ' chars';
+  tagSel.innerHTML = SCRATCH_TAGS.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
 
   const isOpen = localStorage.getItem(STORAGE_SCRATCHPAD_OPEN) !== '0';
   if (!isOpen) { body.classList.add('hidden'); head.classList.add('collapsed'); }
 
-  textarea.addEventListener('input', () => {
-    countEl.textContent = textarea.value.length.toLocaleString() + ' chars';
-    clearTimeout(scratchpadSaveTimer);
-    scratchpadSaveTimer = setTimeout(() => {
-      localStorage.setItem(STORAGE_SCRATCHPAD, textarea.value);
-      markSyncDirty(); scheduleCloudPush();
-      flash.classList.add('show');
-      setTimeout(() => flash.classList.remove('show'), 1200);
-    }, 500);
+  loadScratchNotes();
+  renderScratchpadList();
+
+  function flashSaved() {
+    flash.classList.add('show');
+    setTimeout(() => flash.classList.remove('show'), 1200);
+  }
+
+  addBtn.addEventListener('click', e => {
+    e.stopPropagation();
+    const text = newTa.value.trim();
+    if (!text) { alert('Write something first.'); return; }
+    if (text.length > 5000) { alert('Note is too long (max 5000 characters).'); return; }
+    const tag = tagSel.value || 'gray';
+    const note = { id: 'sn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), text, tag, createdAt: Date.now() };
+    saveScratchNotes([note, ...loadScratchNotes()]);
+    newTa.value = '';
+    renderScratchpadList();
+    flashSaved();
   });
 
   head.addEventListener('click', () => {
@@ -2876,56 +3084,212 @@ function initScratchpad() {
 
   clearBtn.addEventListener('click', e => {
     e.stopPropagation();
-    if (!confirm('Clear all scratchpad content?')) return;
-    textarea.value = '';
-    countEl.textContent = '0 chars';
-    localStorage.setItem(STORAGE_SCRATCHPAD, '');
-    flash.classList.add('show');
-    setTimeout(() => flash.classList.remove('show'), 1200);
+    if (!confirm('Delete all scratch notes?')) return;
+    saveScratchNotes([]);
+    renderScratchpadList();
+    flashSaved();
   });
 }
 
 /* ──────────────────────────────────────────────
-   WEEKLY CALENDAR PANEL
+   CALENDAR PANEL (day / week / month)
    ────────────────────────────────────────────── */
 const STORAGE_CAL_OPEN = 'dm_cal_open';
+let calendarViewMode = 'week';
 let calendarWeekOffset = 0;
+let calendarDayOffset = 0;
+let calendarMonthOffset = 0;
+
+function loadCalPrefs() {
+  const v = localStorage.getItem(STORAGE_CAL_VIEW);
+  calendarViewMode = v === 'day' || v === 'week' || v === 'month' ? v : 'week';
+  calendarWeekOffset = Number(localStorage.getItem(STORAGE_CAL_WEEK_OFF) || 0) || 0;
+  calendarDayOffset = Number(localStorage.getItem(STORAGE_CAL_DAY_OFF) || 0) || 0;
+  calendarMonthOffset = Number(localStorage.getItem(STORAGE_CAL_MONTH_OFF) || 0) || 0;
+}
+
+function persistCalPrefs() {
+  localStorage.setItem(STORAGE_CAL_VIEW, calendarViewMode);
+  localStorage.setItem(STORAGE_CAL_WEEK_OFF, String(calendarWeekOffset));
+  localStorage.setItem(STORAGE_CAL_DAY_OFF, String(calendarDayOffset));
+  localStorage.setItem(STORAGE_CAL_MONTH_OFF, String(calendarMonthOffset));
+}
 
 function calDateStr(d) {
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 function calMonday(date) {
-  const d = new Date(date); const day = d.getDay();
-  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1)); return d;
+  const d = new Date(date);
+  const day = d.getDay();
+  d.setDate(d.getDate() - (day === 0 ? 6 : day - 1));
+  return d;
 }
 function calFmtMD(d) { return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }); }
 function calTasksForDate(dateStr) {
   return CATEGORIES.flatMap(c => TASK_DATA[c]).filter(t => t.due === dateStr && t.freq === 'one-time');
 }
 
+function calNavPrev() {
+  if (calendarViewMode === 'day') calendarDayOffset--;
+  else if (calendarViewMode === 'week') calendarWeekOffset--;
+  else calendarMonthOffset--;
+  persistCalPrefs();
+  refreshCalendarView();
+}
+function calNavNext() {
+  if (calendarViewMode === 'day') calendarDayOffset++;
+  else if (calendarViewMode === 'week') calendarWeekOffset++;
+  else calendarMonthOffset++;
+  persistCalPrefs();
+  refreshCalendarView();
+}
+function calNavToday() {
+  calendarDayOffset = calendarWeekOffset = calendarMonthOffset = 0;
+  persistCalPrefs();
+  refreshCalendarView();
+}
+
 function refreshCalendarView() {
-  const daysEl = document.getElementById('calendar-days');
+  loadCalPrefs();
   const rangeEl = document.getElementById('cal-date-range');
-  if (!daysEl || !rangeEl) return;
-  const today = new Date(); today.setHours(0,0,0,0);
-  const monday = calMonday(today);
-  monday.setDate(monday.getDate() + (calendarWeekOffset * 7));
-  const days = Array.from({length:7}, (_,i) => { const d = new Date(monday); d.setDate(d.getDate()+i); return d; });
-  rangeEl.textContent = calFmtMD(days[0]) + ' – ' + calFmtMD(days[6]);
-  const dayNames = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  const main = document.getElementById('calendar-main');
+  const titleEl = document.getElementById('cal-panel-title');
+  if (!main || !rangeEl) return;
+
+  document.querySelectorAll('#cal-view-toggle .calendar-view-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.calView === calendarViewMode);
+  });
+  if (titleEl) {
+    titleEl.textContent = calendarViewMode === 'month' ? 'Month' : calendarViewMode === 'day' ? 'Day' : 'Week';
+  }
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const todayStr = calDateStr(today);
-  daysEl.innerHTML = '';
+
+  main.innerHTML = '';
+
+  if (calendarViewMode === 'month') {
+    const ref = new Date(today.getFullYear(), today.getMonth() + calendarMonthOffset, 1);
+    const y = ref.getFullYear();
+    const m = ref.getMonth();
+    rangeEl.textContent = ref.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    const wrap = document.createElement('div');
+    wrap.className = 'calendar-month-wrap';
+    const title = document.createElement('div');
+    title.className = 'calendar-month-title';
+    title.textContent = rangeEl.textContent;
+    wrap.appendChild(title);
+
+    const grid = document.createElement('div');
+    grid.className = 'calendar-month-grid';
+    ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].forEach(dn => {
+      const h = document.createElement('div');
+      h.className = 'calendar-month-dow';
+      h.textContent = dn;
+      grid.appendChild(h);
+    });
+
+    const first = new Date(y, m, 1);
+    const startPad = (first.getDay() + 6) % 7;
+    const gridStart = new Date(first);
+    gridStart.setDate(first.getDate() - startPad);
+
+    for (let i = 0; i < 42; i++) {
+      const d = new Date(gridStart);
+      d.setDate(gridStart.getDate() + i);
+      const dateStr = calDateStr(d);
+      const inMonth = d.getMonth() === m;
+      const isTodayCell = dateStr === todayStr;
+      const tasks = calTasksForDate(dateStr);
+      const cell = document.createElement('div');
+      cell.className = 'calendar-month-cell' + (!inMonth ? ' other-month' : '') + (isTodayCell ? ' today' : '');
+
+      const head = document.createElement('div');
+      head.className = 'calendar-month-date';
+      head.textContent = String(d.getDate());
+      cell.appendChild(head);
+
+      const list = document.createElement('div');
+      list.className = 'calendar-month-tasks';
+      const maxShow = 3;
+      tasks.slice(0, maxShow).forEach(task => {
+        const el = document.createElement('div');
+        el.className = 'calendar-month-task';
+        el.textContent = task.name;
+        el.title = task.name;
+        el.addEventListener('click', e => { e.stopPropagation(); openTaskModal('edit', null, task.id); });
+        list.appendChild(el);
+      });
+      if (tasks.length > maxShow) {
+        const more = document.createElement('div');
+        more.className = 'calendar-month-more';
+        more.textContent = '+' + (tasks.length - maxShow) + ' more';
+        list.appendChild(more);
+      }
+      cell.appendChild(list);
+
+      const addBtn = document.createElement('button');
+      addBtn.type = 'button';
+      addBtn.className = 'calendar-day-add';
+      addBtn.textContent = '+';
+      addBtn.style.marginTop = '4px';
+      addBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        openTaskModal('add', 'priority');
+        setTimeout(() => { document.getElementById('f-due').value = dateStr; }, 60);
+      });
+      cell.appendChild(addBtn);
+      grid.appendChild(cell);
+    }
+    wrap.appendChild(grid);
+    main.appendChild(wrap);
+    return;
+  }
+
+  const daysEl = document.createElement('div');
+  daysEl.id = 'calendar-days';
+  daysEl.className = 'calendar-days' + (calendarViewMode === 'day' ? ' view-day' : '');
+  main.appendChild(daysEl);
+
+  let days = [];
+  if (calendarViewMode === 'day') {
+    const d = new Date(today);
+    d.setDate(d.getDate() + calendarDayOffset);
+    days = [d];
+    rangeEl.textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' });
+  } else {
+    const monday = calMonday(today);
+    monday.setDate(monday.getDate() + calendarWeekOffset * 7);
+    days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(d.getDate() + i);
+      return d;
+    });
+    rangeEl.textContent = calFmtMD(days[0]) + ' – ' + calFmtMD(days[6]);
+  }
+
+  const dayNames = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   days.forEach((d, idx) => {
     const dateStr = calDateStr(d);
     const isToday = dateStr === todayStr;
     const tasks = calTasksForDate(dateStr);
     const dayEl = document.createElement('div');
     dayEl.className = 'calendar-day' + (isToday ? ' today' : '');
-    dayEl.innerHTML = `<div class="calendar-day-header">${dayNames[idx]}</div><div class="calendar-day-date">${d.getDate()}</div><div class="calendar-tasks" id="cal-tasks-${dateStr}"></div><button type="button" class="calendar-day-add" data-date="${dateStr}">+ Add</button>`;
+    const headerLabel = calendarViewMode === 'day'
+      ? d.toLocaleDateString('en-US', { weekday: 'long' })
+      : dayNames[idx];
+    const dateLine = calendarViewMode === 'day'
+      ? d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
+      : String(d.getDate());
+    dayEl.innerHTML = `<div class="calendar-day-header">${headerLabel}</div><div class="calendar-day-date">${dateLine}</div><div class="calendar-tasks" id="cal-tasks-${dateStr}"></div><button type="button" class="calendar-day-add" data-date="${dateStr}">+ Add</button>`;
     const tasksContainer = dayEl.querySelector('.calendar-tasks');
     tasks.forEach(task => {
-      const el = document.createElement('div'); el.className = 'calendar-task'; el.title = task.name;
-      el.innerHTML = `<span class="calendar-task-prio-dot prio-${task.prio||'none'}"></span><span class="calendar-task-title">${escapeHtml(task.name)}</span>`;
+      const el = document.createElement('div');
+      el.className = 'calendar-task';
+      el.title = task.name;
+      el.innerHTML = `<span class="calendar-task-prio-dot prio-${task.prio || 'none'}"></span><span class="calendar-task-title">${escapeHtml(task.name)}</span>`;
       el.addEventListener('click', e => { e.stopPropagation(); openTaskModal('edit', null, task.id); });
       tasksContainer.appendChild(el);
     });
@@ -2939,6 +3303,7 @@ function refreshCalendarView() {
 }
 
 function initCalendarPanel() {
+  loadCalPrefs();
   const content = document.getElementById('calendar-content');
   const toggle = document.getElementById('calendar-toggle');
   const isOpen = localStorage.getItem(STORAGE_CAL_OPEN) !== '0';
@@ -2951,9 +3316,21 @@ function initCalendarPanel() {
     toggle.textContent = nowVisible ? '▾' : '▴';
     localStorage.setItem(STORAGE_CAL_OPEN, nowVisible ? '0' : '1');
   });
-  document.getElementById('cal-prev').addEventListener('click', e => { e.stopPropagation(); calendarWeekOffset--; refreshCalendarView(); });
-  document.getElementById('cal-next').addEventListener('click', e => { e.stopPropagation(); calendarWeekOffset++; refreshCalendarView(); });
-  document.getElementById('cal-today').addEventListener('click', e => { e.stopPropagation(); calendarWeekOffset = 0; refreshCalendarView(); });
+
+  document.querySelectorAll('#cal-view-toggle .calendar-view-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const v = btn.dataset.calView;
+      if (!v || v === calendarViewMode) return;
+      calendarViewMode = v;
+      persistCalPrefs();
+      refreshCalendarView();
+    });
+  });
+
+  document.getElementById('cal-prev').addEventListener('click', e => { e.stopPropagation(); calNavPrev(); });
+  document.getElementById('cal-next').addEventListener('click', e => { e.stopPropagation(); calNavNext(); });
+  document.getElementById('cal-today').addEventListener('click', e => { e.stopPropagation(); calNavToday(); });
   refreshCalendarView();
 }
 
