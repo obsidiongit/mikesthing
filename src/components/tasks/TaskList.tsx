@@ -7,7 +7,11 @@ import RichTextEditor from "../RichTextEditor";
 
 export default function TaskList({ category = "Active" }: { category?: TaskCategory }) {
   const { tasks, addTask, updateTask, moveTask, deleteTask } = useStore();
+  const [isAddingTask, setIsAddingTask] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState<Task['priority']>("medium");
+  const [newTaskTags, setNewTaskTags] = useState("");
+  
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [editTaskTitle, setEditTaskTitle] = useState("");
@@ -30,14 +34,20 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
     e.preventDefault();
     if (!newTaskTitle.trim()) return;
     
+    const parsedTags = newTaskTags.split(",").map(t => t.trim()).filter(Boolean);
+    
     addTask({
       title: newTaskTitle,
       status: "not_started",
-      priority: "medium",
+      priority: newTaskPriority,
       category,
-      tags: [],
+      tags: parsedTags,
     });
+    
     setNewTaskTitle("");
+    setNewTaskPriority("medium");
+    setNewTaskTags("");
+    setIsAddingTask(false);
   };
 
   const toggleTaskStatus = (task: Task) => {
@@ -68,22 +78,69 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
 
   return (
     <div className="flex flex-col h-full w-full">
-      <form onSubmit={handleAddTask} className="mb-4 flex gap-2">
-        <input
-          type="text"
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
-          placeholder="Add a new task..."
-          className="flex-1 bg-background border border-border rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-primary transition-colors"
-        />
-        <button 
-          type="submit"
-          disabled={!newTaskTitle.trim()}
-          className="bg-primary text-white p-2 rounded-lg hover:bg-indigo-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-        >
-          <Plus size={20} />
-        </button>
-      </form>
+      <div className="mb-4">
+        {!isAddingTask ? (
+          <button 
+            onClick={() => setIsAddingTask(true)}
+            className="w-full flex items-center justify-center text-left bg-background border border-border border-dashed rounded-lg px-4 py-2.5 text-sm text-gray-400 hover:text-white hover:border-gray-500 hover:bg-surface-hover transition-colors"
+          >
+            <Plus size={16} className="mr-2" /> Add Task
+          </button>
+        ) : (
+          <form onSubmit={handleAddTask} className="bg-surface border border-border rounded-lg p-3 flex flex-col gap-3 shadow-lg">
+            <input
+              autoFocus
+              type="text"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              placeholder="Task title..."
+              className="w-full bg-background border border-border rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-primary transition-colors"
+            />
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 flex-1">
+                <AlertCircle size={14} className="text-gray-500 flex-shrink-0" />
+                <select
+                  className="bg-background border border-border rounded text-xs text-white p-1.5 focus:outline-none focus:border-primary w-full"
+                  value={newTaskPriority}
+                  onChange={(e) => setNewTaskPriority(e.target.value as any)}
+                >
+                  <option value="none">No Priority</option>
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                  <option value="urgent">Urgent</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2 flex-1">
+                <Tag size={14} className="text-gray-500 flex-shrink-0" />
+                <input
+                  type="text"
+                  className="bg-background border border-border rounded text-xs text-white p-1.5 focus:outline-none focus:border-primary w-full"
+                  placeholder="tag1, tag2..."
+                  value={newTaskTags}
+                  onChange={(e) => setNewTaskTags(e.target.value)}
+                />
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 mt-1">
+              <button 
+                type="button" 
+                onClick={() => setIsAddingTask(false)} 
+                className="text-xs text-gray-400 hover:text-white hover:bg-surface-hover px-3 py-1.5 rounded transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                type="submit" 
+                disabled={!newTaskTitle.trim()} 
+                className="bg-primary text-white px-4 py-1.5 rounded text-xs hover:bg-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+              >
+                Save
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
 
       <div 
         className="flex-1 overflow-y-auto space-y-2 pr-2"
