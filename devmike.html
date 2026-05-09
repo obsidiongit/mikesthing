@@ -3339,7 +3339,20 @@ document.getElementById('pin-submit').addEventListener('click', tryUnlock);
 document.getElementById('pin-input').addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
 document.getElementById('pin-setup-btn').addEventListener('click', tryPinSetup);
 document.getElementById('pin-setup-b').addEventListener('keydown', e => { if (e.key === 'Enter') tryPinSetup(); });
+// Auto-save sync inputs as user types to prevent data loss on accidental refresh
+['gate-sync-url', 'gate-sync-key', 'gate-sync-id'].forEach(id => {
+  document.getElementById(id).addEventListener('input', () => {
+    const url = document.getElementById('gate-sync-url').value.trim();
+    const key = document.getElementById('gate-sync-key').value.trim();
+    const sid = document.getElementById('gate-sync-id').value.trim();
+    if (url) localStorage.setItem(STORAGE_SYNC_URL, url);
+    if (key) localStorage.setItem(STORAGE_SYNC_KEY, key);
+    if (sid) localStorage.setItem(STORAGE_SYNC_ID, sid);
+  });
+});
+
 document.getElementById('gate-sync-load').addEventListener('click', () => gateLoadCloudAndPin());
+
 
 // Task modal
 document.getElementById('modal-task-cancel').addEventListener('click', closeTaskModal);
