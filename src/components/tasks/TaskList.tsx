@@ -155,7 +155,8 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
               key={task.id}
               draggable
               onDragStart={(e) => onDragStart(e, task.id)}
-              className={`flex flex-col bg-surface border border-border rounded-lg hover:border-gray-600 transition-colors group ${
+              onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+              className={`flex flex-col bg-surface border border-border rounded-lg hover:border-gray-600 transition-colors group cursor-pointer ${
                 task.status === "completed" ? "opacity-50" : ""
               }`}
             >
@@ -164,7 +165,7 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
                   <GripVertical size={16} />
                 </div>
                 <button 
-                  onClick={() => toggleTaskStatus(task)}
+                  onClick={(e) => { e.stopPropagation(); toggleTaskStatus(task); }}
                   className="text-gray-400 hover:text-white mr-3 flex-shrink-0"
                 >
                   {task.status === "completed" ? (
@@ -177,6 +178,7 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
                   {editingTaskId === task.id ? (
                     <input 
                       autoFocus
+                      onClick={(e) => e.stopPropagation()}
                       className="flex-1 bg-background text-white text-sm p-1 rounded border border-border focus:border-primary focus:outline-none"
                       value={editTaskTitle}
                       onChange={(e) => setEditTaskTitle(e.target.value)}
@@ -195,7 +197,7 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
                     </p>
                   )}
                   <button 
-                    onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                    onClick={(e) => { e.stopPropagation(); setExpandedTaskId(expandedTaskId === task.id ? null : task.id); }}
                     className="text-gray-500 hover:text-white p-1 rounded transition-colors"
                   >
                     {expandedTaskId === task.id ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
@@ -204,7 +206,7 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
                 <div className="ml-3 flex-shrink-0 flex items-center gap-2">
                   {editingTaskId !== task.id && (
                     <button 
-                      onClick={() => startTaskEdit(task.id, task.title)}
+                      onClick={(e) => { e.stopPropagation(); startTaskEdit(task.id, task.title); }}
                       className="text-gray-500 opacity-0 group-hover:opacity-100 hover:text-white transition-opacity"
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>
@@ -221,7 +223,10 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
                 </div>
               </div>
               {expandedTaskId === task.id && (
-                <div className="p-3 border-t border-border/50 bg-background/50 flex flex-col gap-4">
+                <div 
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-3 border-t border-border/50 bg-background/50 flex flex-col gap-4"
+                >
                   <div>
                     <div className="text-xs font-semibold text-gray-400 mb-2">Description / Notes</div>
                     <RichTextEditor 
