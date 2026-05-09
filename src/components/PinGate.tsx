@@ -5,7 +5,7 @@ import { useStore } from "@/store/useStore";
 import { Lock } from "lucide-react";
 
 export default function PinGate({ children }: { children: React.ReactNode }) {
-  const { pin, isAuthenticated, setPin, authenticate } = useStore();
+  const { pin, isAuthenticated, setPin, authenticate, checkAuthTimeout } = useStore();
   const [inputPin, setInputPin] = useState("");
   const [error, setError] = useState("");
   const [isMounted, setIsMounted] = useState(false);
@@ -13,7 +13,14 @@ export default function PinGate({ children }: { children: React.ReactNode }) {
   // Avoid hydration mismatch by rendering only after mount
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    checkAuthTimeout(); // Check immediately on mount/refresh
+    
+    const interval = setInterval(() => {
+      checkAuthTimeout();
+    }, 60000); // Check every minute
+    
+    return () => clearInterval(interval);
+  }, [checkAuthTimeout]);
 
   if (!isMounted) {
     return null; // Or a loading spinner matching the background

@@ -29,9 +29,11 @@ export interface AppState {
   // Authentication & Security
   pin: string | null;
   isAuthenticated: boolean;
+  lastAuthenticatedAt: number | null;
   setPin: (pin: string) => void;
   authenticate: (pin: string) => boolean;
   logout: () => void;
+  checkAuthTimeout: () => void;
 
   // Sync Configuration
   syncConfig: SyncConfig;
@@ -58,16 +60,26 @@ export const useStore = create<AppState>()(
       // Security
       pin: null,
       isAuthenticated: false,
+      lastAuthenticatedAt: null,
       setPin: (pin) => set({ pin }),
       authenticate: (inputPin) => {
         const { pin } = get();
         if (pin === inputPin) {
-          set({ isAuthenticated: true });
+          set({ isAuthenticated: true, lastAuthenticatedAt: Date.now() });
           return true;
         }
         return false;
       },
-      logout: () => set({ isAuthenticated: false }),
+      logout: () => set({ isAuthenticated: false, lastAuthenticatedAt: null }),
+      checkAuthTimeout: () => {
+        const { lastAuthenticatedAt, isAuthenticated } = get();
+        if (isAuthenticated && lastAuthenticatedAt) {
+          const thirtyMins = 30 * 60 * 1000; // 30 minutes in milliseconds
+          if (Date.now() - lastAuthenticatedAt > thirtyMins) {
+            set({ isAuthenticated: false, lastAuthenticatedAt: null });
+          }
+        }
+      },
 
       // Sync Config
       syncConfig: {
@@ -119,10 +131,12 @@ export const useStore = create<AppState>()(
       name: 'devmike-storage',
       partialize: (state) => ({ 
         pin: state.pin, 
+        isAuthenticated: state.isAuthenticated,
+        lastAuthenticatedAt: state.lastAuthenticatedAt,
         syncConfig: state.syncConfig, 
         tasks: state.tasks,
         scratchpadContent: state.scratchpadContent
-      }), // Don't persist isAuthenticated
+      }),
     }
   )
 );
