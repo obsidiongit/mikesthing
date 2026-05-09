@@ -7,7 +7,10 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="/manifest.json">
-<title>Devmike — Obsidion</title>
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+<title>Devmike Mission Control</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -31,13 +34,15 @@
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
+  body, html {
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
     font-family: var(--font);
     font-size: 15px;
     line-height: 1.5;
     color: var(--text);
     background: var(--bg);
-    min-height: 100vh;
     -webkit-font-smoothing: antialiased;
   }
 
@@ -148,7 +153,8 @@
   /* ── New App Layout ───────────────────────── */
   .app-container {
     display: flex;
-    min-height: 100vh;
+    height: 100vh;
+    overflow: hidden;
     background: var(--bg);
   }
 
@@ -244,15 +250,19 @@
   
   .view-container {
     flex: 1;
-    padding: 32px;
+    padding: 24px 32px 32px;
     max-width: 1400px;
     width: 100%;
     margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    min-height: 0;
   }
 
   /* Views */
-  .app-view { display: none; }
-  .app-view.active { display: block; animation: viewFadeIn 0.3s cubic-bezier(0, 0, 0.2, 1); }
+  .app-view { display: none; flex: 1; flex-direction: column; min-height: 0; overflow: hidden; }
+  .app-view.active { display: flex; animation: viewFadeIn 0.3s cubic-bezier(0, 0, 0.2, 1); }
 
   @keyframes viewFadeIn {
     from { opacity: 0; transform: translateY(8px); }
@@ -264,8 +274,20 @@
     display: grid;
     grid-template-columns: 1.6fr 1fr;
     gap: 32px;
-    align-items: start;
+    align-items: stretch;
+    flex: 1;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
   }
+
+  .dashboard-main, .dashboard-sidebar {
+    height: 100%;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+  .dashboard-main::-webkit-scrollbar, .dashboard-sidebar::-webkit-scrollbar { width: 4px; }
+  .dashboard-main::-webkit-scrollbar-thumb, .dashboard-sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
   /* Section Header Overrides */
   .view-header {
@@ -1265,8 +1287,8 @@
       </div>
 
       <!-- View: Home -->
-      <div id="view-home" class="app-view active">
-        <div class="view-header">
+      <div id="view-home" class="app-view active" style="flex: 1; display: flex; flex-direction: column; min-height: 0;">
+        <div class="view-header" style="margin-bottom: 20px; flex-shrink: 0;">
           <h1>Welcome back</h1>
           <p id="home-greeting">Here is what's on your plate for today.</p>
         </div>
@@ -1828,16 +1850,22 @@ function setPin(p) {
 
 async function prefetchGatePinFromCloud() {
   const c = getSyncConfig();
-  if (!c) return;
+  if (!c) { console.log('Sync not configured, skipping prefetch'); return; }
   try {
+    console.log('Prefetching PIN from cloud...');
     const u = `${c.url}/rest/v1/devmike_sync?id=eq.${encodeURIComponent(c.id)}&select=payload`;
     const r = await fetch(u, { headers: { apikey: c.key, Authorization: `Bearer ${c.key}` } });
-    if (!r.ok) return;
+    if (!r.ok) { console.warn('Cloud fetch failed:', r.status); return; }
     const rows = await r.json();
-    if (!Array.isArray(rows) || !rows[0] || !rows[0].payload) return;
+    if (!Array.isArray(rows) || !rows[0] || !rows[0].payload) { console.log('No cloud payload found'); return; }
     const pin = rows[0].payload.pin;
-    if (typeof pin === 'string' && /^\d{4}$/.test(pin)) setPin(pin);
-  } catch (e) {}
+    if (typeof pin === 'string' && /^\d{4}$/.test(pin)) {
+      console.log('Cloud PIN found, saving locally');
+      setPin(pin);
+    } else {
+      console.log('No PIN in cloud payload');
+    }
+  } catch (e) { console.error('Prefetch error:', e); }
 }
 
 function applyPinFromPayload(data) {
@@ -2675,7 +2703,7 @@ let modalEditId = null;
 
 function initRTE() {
   document.querySelectorAll('.rte-toolbar').forEach(toolbar => {
-    const editor = toolbar.nextElementSibling.classList.contains('rte-editor') 
+    const editor = (toolbar.nextElementSibling && toolbar.nextElementSibling.classList.contains('rte-editor'))
       ? toolbar.nextElementSibling 
       : toolbar.parentElement.querySelector('.rte-editor');
     
@@ -3011,14 +3039,33 @@ function showPinGateSetup() {
 }
 
 async function initPinGate() {
+  console.log('Initializing PIN gate...');
   const loading = document.getElementById('pin-gate-loading');
   loading.classList.remove('hidden');
   document.getElementById('pin-unlock-wrap').classList.add('hidden');
   document.getElementById('pin-setup-wrap').classList.add('hidden');
+  
+  // Auto-fill cloud fields if they exist
+  const c = getSyncConfig();
+  if (c) {
+    console.log('Found existing sync config');
+    document.getElementById('gate-sync-url').value = c.url || '';
+    document.getElementById('gate-sync-key').value = c.key || '';
+    document.getElementById('gate-sync-id').value = c.id || '';
+  }
+
   await prefetchGatePinFromCloud();
   loading.classList.add('hidden');
-  if (!getStoredPin()) showPinGateSetup();
-  else showPinGateUnlock();
+  
+  const storedPin = getStoredPin();
+  console.log('Stored PIN check:', storedPin ? 'Found' : 'Missing');
+
+  if (!storedPin) {
+    showPinGateSetup();
+  } else {
+    showPinGateUnlock();
+    setTimeout(() => document.getElementById('pin-input').focus(), 50);
+  }
 }
 
 function tryPinSetup() {
@@ -3167,17 +3214,23 @@ async function saveSyncSettings() {
 let devmikeSyncListenersBound = false;
 
 function switchView(viewId) {
-  // Update sidebar buttons
+  if (!viewId) return;
+  console.log('Switching to view:', viewId);
+
+  // Update sidebar buttons - support both data-view and parent lookup
   document.querySelectorAll('.nav-item').forEach(btn => {
-    btn.classList.toggle('active', btn.dataset.view === viewId);
+    const v = btn.dataset.view;
+    if (v) btn.classList.toggle('active', v === viewId);
   });
 
   // Update views
   document.querySelectorAll('.app-view').forEach(view => {
-    view.classList.toggle('active', view.id === `view-${viewId}`);
+    view.classList.remove('active');
+    if (view.id === `view-${viewId}`) {
+      view.classList.add('active');
+    }
   });
 
-  // Update title
   const titleMap = {
     'home': 'Dashboard',
     'tasks': 'All Tasks',
@@ -3185,40 +3238,58 @@ function switchView(viewId) {
     'habits': 'Habits & Goals',
     'analytics': 'Activity'
   };
-  document.getElementById('current-view-title').textContent = titleMap[viewId] || 'Dashboard';
+  const titleEl = document.getElementById('current-view-title');
+  if (titleEl) titleEl.textContent = titleMap[viewId] || 'Dashboard';
 
-  // Persistence
   localStorage.setItem('dm_current_view', viewId);
-  
-  // Refresh Lucide icons for the new view
   if (typeof lucide !== 'undefined') lucide.createIcons();
 }
 
+// Global Navigation Listener (Event Delegation)
+document.addEventListener('click', e => {
+  const navItem = e.target.closest('.nav-item[data-view]');
+  if (navItem) {
+    e.preventDefault();
+    switchView(navItem.dataset.view);
+  }
+});
+
 function bootApp() {
-  if (typeof lucide !== 'undefined') lucide.createIcons();
-  initRTE();
-  render();
-  initLinksPanel();
-  initScratchpad();
-  initCalendarPanel();
-  initHabits();
-  initGoalsPanel();
-  initStatsPanel();
-  initActivityPanel();
-  initPomodoro();
-  updateSyncBadge();
+  console.log('Booting app...');
+  // Bind sidebar navigation first and foremost
+  document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.preventDefault();
+      switchView(btn.dataset.view);
+    };
+  });
+
+  const runInit = (name, fn) => {
+    try { fn(); } catch(e) { console.error(`Error in ${name}:`, e); }
+  };
+
+  if (typeof lucide !== 'undefined') runInit('Lucide', lucide.createIcons);
+  runInit('RTE', initRTE);
+  runInit('Render', render);
+  runInit('Links', initLinksPanel);
+  runInit('Scratchpad', initScratchpad);
+  runInit('Calendar', initCalendarPanel);
+  runInit('Habits', initHabits);
+  runInit('Goals', initGoalsPanel);
+  runInit('Stats', initStatsPanel);
+  runInit('Activity', initActivityPanel);
+  runInit('Pomodoro', initPomodoro);
+  runInit('SyncBadge', updateSyncBadge);
 
   // Restore previous view
   const savedView = localStorage.getItem('dm_current_view') || 'home';
   switchView(savedView);
 
-  // Sidebar listeners
-  document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
-    btn.addEventListener('click', () => switchView(btn.dataset.view));
-  });
-
-  document.getElementById('btn-sync-sidebar').addEventListener('click', openSyncModal);
-  document.getElementById('btn-lock-sidebar').addEventListener('click', lockApp);
+  const syncBtn = document.getElementById('btn-sync-sidebar');
+  if (syncBtn) syncBtn.onclick = openSyncModal;
+  
+  const lockBtn = document.getElementById('btn-lock-sidebar');
+  if (lockBtn) lockBtn.onclick = lockApp;
 
   if (!devmikeSyncListenersBound) {
     devmikeSyncListenersBound = true;
