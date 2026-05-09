@@ -52,6 +52,9 @@ export interface AppState {
   // Calendar
   calendarEvents: CalendarEvent[];
   setCalendarEvents: (events: CalendarEvent[]) => void;
+  localCalendarEvents: CalendarEvent[];
+  addLocalEvent: (event: Omit<CalendarEvent, 'id'>) => void;
+  removeLocalEvent: (id: string) => void;
 
   // Task Data
   tasks: Task[];
@@ -120,6 +123,13 @@ export const useStore = create<AppState>()(
       // Calendar
       calendarEvents: [],
       setCalendarEvents: (events) => set({ calendarEvents: events }),
+      localCalendarEvents: [],
+      addLocalEvent: (eventData) => set((state) => ({
+        localCalendarEvents: [...state.localCalendarEvents, { ...eventData, id: crypto.randomUUID() }]
+      })),
+      removeLocalEvent: (id) => set((state) => ({
+        localCalendarEvents: state.localCalendarEvents.filter(e => e.id !== id)
+      })),
 
       // Tasks
       tasks: [],
@@ -200,6 +210,7 @@ export const useStore = create<AppState>()(
         tasks: state.tasks,
         scratchpadContent: state.scratchpadContent,
         calendarEvents: state.calendarEvents,
+        localCalendarEvents: state.localCalendarEvents,
         quickLinks: state.quickLinks,
         habits: state.habits,
       }),
