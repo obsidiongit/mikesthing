@@ -6,7 +6,7 @@ import { enUS } from 'date-fns/locale/en-US';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
 import { useStore } from '@/store/useStore';
 import { useMemo, useCallback, useState } from 'react';
-import { X, Calendar as CalendarIcon, Clock, MapPin, Trash2 } from 'lucide-react';
+import { X, Calendar as CalendarIcon, Clock, MapPin, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const locales = {
   'en-US': enUS,
@@ -25,6 +25,63 @@ interface NewEventState {
   start: Date;
   end: Date;
 }
+
+const CustomToolbar = (toolbar: any) => {
+  const goToBack = () => {
+    toolbar.onNavigate('PREV');
+  };
+
+  const goToNext = () => {
+    toolbar.onNavigate('NEXT');
+  };
+
+  const goToToday = () => {
+    toolbar.onNavigate('TODAY');
+  };
+
+  return (
+    <div className="rbc-toolbar !mb-8">
+      <div className="rbc-btn-group">
+        <button type="button" onClick={goToToday} className="!bg-surface !border-border !text-gray-300 hover:!text-white">
+          Today
+        </button>
+      </div>
+
+      <div className="flex items-center gap-6">
+        <button 
+          type="button" 
+          onClick={goToBack}
+          className="p-2 rounded-full hover:bg-white/5 transition-colors text-gray-400 hover:text-white border-none bg-transparent"
+        >
+          <ChevronLeft size={24} />
+        </button>
+        <span className="text-2xl font-bold text-white min-w-[200px] text-center">
+          {toolbar.label}
+        </span>
+        <button 
+          type="button" 
+          onClick={goToNext}
+          className="p-2 rounded-full hover:bg-white/5 transition-colors text-gray-400 hover:text-white border-none bg-transparent"
+        >
+          <ChevronRight size={24} />
+        </button>
+      </div>
+
+      <div className="rbc-btn-group">
+        {toolbar.views.map((view: string) => (
+          <button
+            key={view}
+            type="button"
+            onClick={() => toolbar.onView(view)}
+            className={`${toolbar.view === view ? 'rbc-active' : ''} capitalize`}
+          >
+            {view}
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
 
 export default function BigCalendar() {
   const { calendarEvents, localCalendarEvents, addLocalEvent, removeLocalEvent } = useStore();
@@ -107,6 +164,9 @@ export default function BigCalendar() {
         onSelectEvent={handleSelectEvent}
         eventPropGetter={eventPropGetter}
         popup
+        components={{
+          toolbar: CustomToolbar,
+        }}
       />
 
       {/* Creation Modal */}
