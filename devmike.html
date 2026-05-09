@@ -11,6 +11,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
 <style>
   :root {
     --bg: #0a0a0a;
@@ -560,6 +561,64 @@
   .modal-actions { display: flex; gap: 10px; margin-top: 22px; flex-wrap: wrap; }
   .modal-actions .btn { flex: 1; min-width: 100px; }
 
+  /* ── Rich Text Editor ─────────────────────── */
+  .rte-toolbar {
+    display: flex;
+    gap: 4px;
+    padding: 6px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-bottom: none;
+  }
+  .rte-btn {
+    background: none;
+    border: 1px solid transparent;
+    color: var(--muted);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+  .rte-btn:hover {
+    background: var(--surface);
+    color: var(--text);
+    border-color: var(--border-strong);
+  }
+  .rte-btn.active {
+    background: var(--border);
+    color: var(--white);
+  }
+  .rte-editor {
+    width: 100%;
+    min-height: 120px;
+    padding: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow-y: auto;
+  }
+  .rte-editor:focus {
+    outline: none;
+    border-color: var(--white);
+  }
+  .rte-editor ul, .rte-editor ol {
+    padding-left: 20px;
+    margin-bottom: 10px;
+  }
+  .rte-editor blockquote {
+    border-left: 3px solid var(--border-strong);
+    padding-left: 12px;
+    color: var(--muted);
+    font-style: italic;
+    margin: 10px 0;
+  }
+
   /* ── Trash modal ──────────────────────────── */
   .trash-meta { font-size: 11px; color: var(--muted); margin-bottom: 16px; line-height: 1.5; }
   .trash-row {
@@ -949,17 +1008,18 @@
     </div>
     <div class="header-actions">
       <span class="sync-badge" id="sync-badge" title="Cloud sync status">Local only</span>
-      <button type="button" class="btn btn-ghost" id="btn-sync">Cloud sync</button>
-      <button type="button" class="btn btn-ghost" id="btn-trash">Recover deleted</button>
-      <button type="button" class="btn btn-ghost" id="btn-change-pin">Change PIN</button>
-      <button type="button" class="btn btn-ghost" id="btn-lock">Lock</button>
+      <button type="button" class="btn btn-ghost" id="btn-sync"><i data-lucide="cloud" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Cloud sync</button>
+      <button type="button" class="btn btn-ghost" id="btn-trash"><i data-lucide="trash" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Recover deleted</button>
+      <button type="button" class="btn btn-ghost" id="btn-change-pin"><i data-lucide="lock" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Change PIN</button>
+      <button type="button" class="btn btn-ghost" id="btn-lock"><i data-lucide="log-out" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Lock</button>
     </div>
   </header>
 
   <!-- Search -->
   <div class="search-wrap" id="search-wrap">
-    <input type="text" class="search-input" id="search-input" placeholder="Search tasks… (or press N to add)" autocomplete="off" spellcheck="false">
-    <button type="button" class="search-clear" id="search-clear" aria-label="Clear search">×</button>
+    <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--dim)"></i>
+    <input type="text" class="search-input" id="search-input" placeholder="Search tasks… (or press N to add)" autocomplete="off" spellcheck="false" style="padding-left:38px">
+    <button type="button" class="search-clear" id="search-clear" aria-label="Clear search"><i data-lucide="x" style="width:16px;height:16px"></i></button>
   </div>
 
   <!-- Quick Links Panel -->
@@ -971,7 +1031,7 @@
     <div class="links-content" id="links-content">
       <div id="links-container"></div>
       <div class="links-add-wrap">
-        <button type="button" class="btn btn-ghost" id="btn-add-link">+ Add link</button>
+        <button type="button" class="btn btn-ghost" id="btn-add-link"><i data-lucide="plus" style="width:12px;height:12px;margin-right:6px"></i>Add link</button>
       </div>
     </div>
   </div>
@@ -1013,9 +1073,9 @@
           <button type="button" class="calendar-view-btn" data-cal-view="week">Week</button>
           <button type="button" class="calendar-view-btn" data-cal-view="month">Month</button>
         </div>
-        <button type="button" class="calendar-nav-btn" id="cal-prev">← Prev</button>
+        <button type="button" class="calendar-nav-btn" id="cal-prev"><i data-lucide="chevron-left" style="width:14px;height:14px"></i></button>
         <button type="button" class="calendar-nav-btn" id="cal-today">Today</button>
-        <button type="button" class="calendar-nav-btn" id="cal-next">Next →</button>
+        <button type="button" class="calendar-nav-btn" id="cal-next"><i data-lucide="chevron-right" style="width:14px;height:14px"></i></button>
         <div class="calendar-date-range" id="cal-date-range"></div>
       </div>
       <div id="calendar-main">
@@ -1041,7 +1101,7 @@
       <div class="habits-toggle-wrap">
         <span class="habits-count" id="habits-count">0 / 0 today</span>
         <button type="button" class="habits-toggle-btn" id="habits-toggle">▼</button>
-        <button type="button" class="habits-btn-add" id="habits-btn-add">+ Add</button>
+        <button type="button" class="habits-btn-add" id="habits-btn-add"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
       </div>
     </div>
     <div class="habits-progress-bar-wrap"><div class="habits-progress-bar-fill" id="habits-progress"></div></div>
@@ -1052,7 +1112,7 @@
   <div class="section" data-cat="priority">
     <div class="section-head">
       <h2>Priority</h2>
-      <button type="button" class="btn btn-add btn-add-task" data-cat="priority">+ Add</button>
+      <button type="button" class="btn btn-add btn-add-task" data-cat="priority"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
     </div>
     <div class="task-list" id="tasks-priority" data-cat="priority"></div>
   </div>
@@ -1061,7 +1121,7 @@
   <div class="section" data-cat="active">
     <div class="section-head">
       <h2>Active</h2>
-      <button type="button" class="btn btn-add btn-add-task" data-cat="active">+ Add</button>
+      <button type="button" class="btn btn-add btn-add-task" data-cat="active"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
     </div>
     <div class="task-list" id="tasks-active" data-cat="active"></div>
   </div>
@@ -1070,7 +1130,7 @@
   <div class="section" data-cat="later">
     <div class="section-head">
       <h2>Later / backlog</h2>
-      <button type="button" class="btn btn-add btn-add-task" data-cat="later">+ Add</button>
+      <button type="button" class="btn btn-add btn-add-task" data-cat="later"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
     </div>
     <div class="task-list" id="tasks-later" data-cat="later"></div>
   </div>
@@ -1090,7 +1150,7 @@
       <div class="goals-list" id="goals-list"></div>
       <div class="goals-empty" id="goals-empty">No goals yet. Add one to get started.</div>
       <div class="goals-add-btn-wrap">
-        <button type="button" class="btn btn-primary" id="btn-add-goal">+ Add goal</button>
+        <button type="button" class="btn btn-primary" id="btn-add-goal"><i data-lucide="plus" style="width:14px;height:14px;margin-right:6px"></i>Add goal</button>
       </div>
     </div>
   </div>
@@ -1127,6 +1187,22 @@
       </div>
     </div>
   </div>
+
+  <!-- Activity History Panel -->
+  <div id="activity-panel" class="stats-panel closed" style="margin-top: 10px;">
+    <div class="stats-head" id="activity-head">
+      <span>Activity History</span>
+      <div class="stats-head-actions">
+        <span class="stats-toggle-icon">▸</span>
+      </div>
+    </div>
+    <div class="stats-body">
+      <div id="activity-list" class="trash-list"></div>
+      <div class="stats-footer">
+        <button type="button" class="btn btn-ghost" id="btn-activity-clear">Clear history</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Add / Edit task modal -->
@@ -1138,8 +1214,19 @@
       <input type="text" id="f-name" maxlength="500" autocomplete="off">
     </div>
     <div class="field">
-      <label for="f-sub">Notes (optional)</label>
-      <textarea id="f-sub" maxlength="2000"></textarea>
+      <label>Notes (optional)</label>
+      <div class="rte-toolbar">
+        <button type="button" class="rte-btn" data-command="bold" title="Bold"><i data-lucide="bold"></i></button>
+        <button type="button" class="rte-btn" data-command="italic" title="Italic"><i data-lucide="italic"></i></button>
+        <button type="button" class="rte-btn" data-command="underline" title="Underline"><i data-lucide="underline"></i></button>
+        <div style="width: 1px; background: var(--border); margin: 0 4px;"></div>
+        <button type="button" class="rte-btn" data-command="insertUnorderedList" title="Bullet List"><i data-lucide="list"></i></button>
+        <button type="button" class="rte-btn" data-command="insertOrderedList" title="Numbered List"><i data-lucide="list-ordered"></i></button>
+        <div style="width: 1px; background: var(--border); margin: 0 4px;"></div>
+        <button type="button" class="rte-btn" data-command="formatBlock" data-value="blockquote" title="Quote"><i data-lucide="quote"></i></button>
+      </div>
+      <div id="f-sub-editor" class="rte-editor" contenteditable="true" placeholder="Enter notes..."></div>
+      <input type="hidden" id="f-sub">
     </div>
     <div class="field">
       <label for="f-due">Due date (optional)</label>
@@ -1334,19 +1421,19 @@ create policy "devmike_rw" on devmike_sync
     </div>
     <div class="pomodoro-footer">
       <div class="pomodoro-session-txt" id="pomo-session">Session 1 of 4</div>
-      <button type="button" class="pomodoro-settings-toggle" id="pomo-settings-toggle" title="Settings">⚙</button>
+      <button type="button" class="pomodoro-settings-toggle" id="pomo-settings-toggle" title="Settings"><i data-lucide="settings" style="width:16px;height:16px"></i></button>
     </div>
     <div class="pomodoro-settings-box" id="pomo-settings-box">
       <div class="pomodoro-setting-row"><label for="pomo-s-work">Work</label><input type="number" id="pomo-s-work" class="pomodoro-setting-input" min="1" max="60" value="25"><span class="pomodoro-setting-unit">min</span></div>
       <div class="pomodoro-setting-row"><label for="pomo-s-break">Break</label><input type="number" id="pomo-s-break" class="pomodoro-setting-input" min="1" max="30" value="5"><span class="pomodoro-setting-unit">min</span></div>
       <div class="pomodoro-setting-row"><label for="pomo-s-long">Long break</label><input type="number" id="pomo-s-long" class="pomodoro-setting-input" min="1" max="60" value="15"><span class="pomodoro-setting-unit">min</span></div>
       <div class="pomodoro-settings-actions">
-        <button type="button" id="pomo-s-reset">Reset</button>
-        <button type="button" class="pomo-save" id="pomo-s-save">Save</button>
+        <button type="button" id="pomo-s-reset"><i data-lucide="rotate-ccw" style="width:12px;height:12px;margin-right:4px"></i>Reset</button>
+        <button type="button" class="pomo-save" id="pomo-s-save"><i data-lucide="save" style="width:12px;height:12px;margin-right:4px"></i>Save</button>
       </div>
     </div>
   </div>
-  <button type="button" class="pomodoro-badge-btn" id="pomo-badge">Focus</button>
+  <button type="button" class="pomodoro-badge-btn" id="pomo-badge"><i data-lucide="timer" style="width:20px;height:20px"></i></button>
 </div>
 
 <script>
@@ -1369,6 +1456,7 @@ const STORAGE_SYNC_LAST_REMOTE = 'devmike_sync_last_remote_ts';
 const STORAGE_SYNC_DIRTY       = 'devmike_sync_dirty';
 
 const STORAGE_SCRATCH_NOTES = 'dm_scratch_notes_v1';
+const STORAGE_ACTIVITY      = 'devmike_activity_v1';
 const STORAGE_SCRATCHPAD_LEGACY = 'dm_scratchpad';
 const STORAGE_CAL_VIEW = 'dm_cal_view';
 const STORAGE_CAL_WEEK_OFF = 'dm_cal_week_off';
@@ -1528,6 +1616,7 @@ function buildCloudPayload() {
   const pin = getStoredPin();
   if (pin) o.pin = pin;
   o.scratchNotes = deepClone(loadScratchNotes());
+  o.activityHistory = deepClone(loadActivity());
   o.calendarViewMode = localStorage.getItem(STORAGE_CAL_VIEW) || 'week';
   o.calendarWeekOffset = Number(localStorage.getItem(STORAGE_CAL_WEEK_OFF) || 0) || 0;
   o.calendarDayOffset = Number(localStorage.getItem(STORAGE_CAL_DAY_OFF) || 0) || 0;
@@ -1554,6 +1643,9 @@ function applyCloudPayload(data) {
       createdAt: typeof n.createdAt === 'number' ? n.createdAt : Date.now()
     }));
     localStorage.setItem(STORAGE_SCRATCH_NOTES, JSON.stringify(cleaned));
+  }
+  if (Array.isArray(data.activityHistory)) {
+    localStorage.setItem(STORAGE_ACTIVITY, JSON.stringify(data.activityHistory));
   }
   if (data.calendarViewMode === 'day' || data.calendarViewMode === 'week' || data.calendarViewMode === 'month') {
     localStorage.setItem(STORAGE_CAL_VIEW, data.calendarViewMode);
@@ -2049,7 +2141,7 @@ function buildTaskRow(task, compact, cat) {
   if (task.sub) {
     const sub = document.createElement('div');
     sub.className = 'task-sub';
-    sub.textContent = task.sub;
+    sub.innerHTML = task.sub;
     body.appendChild(sub);
   }
 
@@ -2062,16 +2154,19 @@ function buildTaskRow(task, compact, cat) {
     actions.className = 'task-actions';
     const bEdit = document.createElement('button');
     bEdit.type = 'button';
-    bEdit.textContent = 'Edit';
+    bEdit.innerHTML = '<i data-lucide="edit-2"></i>';
+    bEdit.title = 'Edit task';
     bEdit.addEventListener('click', e => { e.stopPropagation(); openTaskModal('edit', null, task.id); });
     const bDel = document.createElement('button');
     bDel.type = 'button';
     bDel.className = 'danger';
-    bDel.textContent = 'Delete';
+    bDel.innerHTML = '<i data-lucide="trash-2"></i>';
+    bDel.title = 'Delete task';
     bDel.addEventListener('click', e => deleteTask(task.id, e));
     actions.appendChild(bEdit);
     actions.appendChild(bDel);
     row.appendChild(actions);
+    if (typeof lucide !== 'undefined') lucide.createIcons({ scope: actions });
   }
 
   row.addEventListener('click', () => toggleTask(task, row));
@@ -2085,6 +2180,7 @@ function toggleTask(task) {
   const was = isDone(task);
   setDone(task, !was);
   saveState();
+  logActivity(was ? 'task_undone' : 'task_done', (was ? 'Unchecked: ' : 'Completed: ') + task.name);
   if (task.freq === 'one-time') {
     render(); // moves to/from completed section
   } else {
@@ -2259,15 +2355,42 @@ function applySearch() {
 let modalMode   = 'add';
 let modalEditId = null;
 
+function initRTE() {
+  const editor = document.getElementById('f-sub-editor');
+  const toolbar = document.querySelector('.rte-toolbar');
+  if (!editor || !toolbar) return;
+
+  toolbar.querySelectorAll('.rte-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const command = btn.dataset.command;
+      const value = btn.dataset.value || null;
+      document.execCommand(command, false, value);
+      editor.focus();
+    });
+  });
+
+  // Basic styling reinforcement on paste
+  editor.addEventListener('paste', e => {
+    e.preventDefault();
+    const text = e.clipboardData.getData('text/plain');
+    document.execCommand('insertText', false, text);
+  });
+}
+
+
 function openTaskModal(mode, cat, taskId) {
   modalMode   = mode;
   modalEditId = taskId || null;
   const titleEl = document.getElementById('modal-task-title');
   const fcEl    = document.getElementById('f-cat');
+  const editor  = document.getElementById('f-sub-editor');
+
   if (mode === 'add') {
     titleEl.textContent = 'Add task';
     fcEl.value = cat || 'priority';
     document.getElementById('f-name').value = '';
+    if (editor) editor.innerHTML = '';
     document.getElementById('f-sub').value  = '';
     document.getElementById('f-due').value  = '';
     document.getElementById('f-freq').value = 'one-time';
@@ -2280,6 +2403,7 @@ function openTaskModal(mode, cat, taskId) {
     const t = found.task;
     fcEl.value = found.cat;
     document.getElementById('f-name').value = t.name;
+    if (editor) editor.innerHTML = t.sub || '';
     document.getElementById('f-sub').value  = t.sub || '';
     document.getElementById('f-due').value  = t.due || '';
     document.getElementById('f-freq').value = t.freq;
@@ -2298,7 +2422,10 @@ function closeTaskModal() {
 function saveTaskModal() {
   const name = document.getElementById('f-name').value.trim();
   if (!name) { alert('Enter a title.'); return; }
-  const sub  = document.getElementById('f-sub').value.trim();
+  
+  const editor = document.getElementById('f-sub-editor');
+  const sub = editor ? editor.innerHTML.trim() : '';
+  
   const due  = document.getElementById('f-due').value;
   const freq = document.getElementById('f-freq').value;
   const cat  = document.getElementById('f-cat').value;
@@ -2307,7 +2434,7 @@ function saveTaskModal() {
 
   if (modalMode === 'add') {
     const task = { id: genTaskId(), name, freq, createdAt: Date.now(), status, prio };
-    if (sub) task.sub = sub;
+    if (sub && sub !== '<br>') task.sub = sub;
     if (due) task.due = due;
     TASK_DATA[cat].push(task);
   } else {
@@ -2319,7 +2446,7 @@ function saveTaskModal() {
     t.freq = freq;
     t.status = status;
     t.prio = prio;
-    if (sub) t.sub = sub; else delete t.sub;
+    if (sub && sub !== '<br>') t.sub = sub; else delete t.sub;
     if (due) t.due = due; else delete t.due;
     if (found.cat !== cat) {
       TASK_DATA[found.cat].splice(found.idx, 1);
@@ -2346,6 +2473,7 @@ function deleteTask(taskId, ev) {
   const trash = loadTrash();
   trash.unshift(snapshot);
   if (trash.length > TRASH_MAX) trash.length = TRASH_MAX;
+  logActivity('task_deleted', 'Deleted task: ' + snapshot.task.name);
   saveTrash(trash);
   saveState();
   saveTaskData();
@@ -2718,6 +2846,8 @@ async function saveSyncSettings() {
 let devmikeSyncListenersBound = false;
 
 function bootApp() {
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+  initRTE();
   render();
   initLinksPanel();
   initScratchpad();
@@ -2725,6 +2855,7 @@ function bootApp() {
   initHabits();
   initGoalsPanel();
   initStatsPanel();
+  initActivityPanel();
   initPomodoro();
   updateSyncBadge();
 
@@ -2922,12 +3053,13 @@ function renderLinks() {
       html += `<a href="${escapeHtml(link.url||'')}" target="_blank" rel="noopener" class="link-card" onclick="event.stopPropagation()">
         <span class="link-emoji">${link.emoji||'🔗'}</span>
         <div class="link-text"><div class="link-label">${escapeHtml(link.label||'')}</div><div class="link-url">${escapeHtml(link.url||'')}</div></div>
-        <button type="button" class="link-delete" onclick="deleteLink('${escapeHtml(link.id||'')}',event)" title="Delete">×</button>
+        <button type="button" class="link-delete" onclick="deleteLink('${escapeHtml(link.id||'')}',event)" title="Delete"><i data-lucide="x" style="width:12px;height:12px"></i></button>
       </a>`;
     });
     html += '</div></div>';
   });
   container.innerHTML = html;
+  if (typeof lucide !== 'undefined') lucide.createIcons({ scope: container });
 }
 
 function openLinksModal(mode, linkId) {
@@ -3071,6 +3203,7 @@ function initScratchpad() {
     const tag = tagSel.value || 'gray';
     const note = { id: 'sn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), text, tag, createdAt: Date.now() };
     saveScratchNotes([note, ...loadScratchNotes()]);
+    logActivity('note_added', 'Added note: ' + (text.length > 30 ? text.slice(0, 30) + '...' : text));
     newTa.value = '';
     renderScratchpadList();
     flashSaved();
@@ -3394,17 +3527,19 @@ function renderHabitsPanel() {
     const row = document.createElement('div');
     row.className = 'habit-row' + (done ? ' done' : '');
     row.innerHTML = `
-      <div class="habit-check"><svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7"/></svg></div>
+      <div class="habit-check"><i data-lucide="check" style="width:14px;height:14px"></i></div>
       <div class="habit-body">
         <div class="habit-name">${escapeHtml(habit.name)}</div>
-        <div class="habit-streak">🔥 ${streak} day${streak !== 1 ? 's' : ''}</div>
+        <div class="habit-streak"><i data-lucide="flame" style="width:12px;height:12px;color:#ff4d4d;vertical-align:middle;margin-right:2px"></i> ${streak} day${streak !== 1 ? 's' : ''}</div>
       </div>
       <div class="habit-actions">
-        <button type="button" data-action="edit" data-id="${escapeHtml(habit.id)}">Edit</button>
-        <button type="button" class="danger" data-action="delete" data-id="${escapeHtml(habit.id)}">Delete</button>
+        <button type="button" data-action="edit" data-id="${escapeHtml(habit.id)}" title="Edit habit"><i data-lucide="edit-2" style="width:14px;height:14px"></i></button>
+        <button type="button" class="danger" data-action="delete" data-id="${escapeHtml(habit.id)}" title="Delete habit"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
       </div>`;
     row.addEventListener('click', () => {
-      setHabitDoneToday(habit.id, !isHabitDoneToday(habit.id));
+      const isDone = !isHabitDoneToday(habit.id);
+      setHabitDoneToday(habit.id, isDone);
+      logActivity('habit_done', (isDone ? 'Completed habit: ' : 'Unchecked habit: ') + habit.name);
       saveHabitsState(); renderHabitsPanel();
     });
     row.querySelectorAll('.habit-actions button').forEach(btn => {
@@ -3420,6 +3555,7 @@ function renderHabitsPanel() {
     });
     listEl.appendChild(row);
   });
+  if (typeof lucide !== 'undefined') lucide.createIcons({ scope: listEl });
   const pct = (completed / HABITS_DATA.length) * 100;
   if (progressEl) progressEl.style.width = pct + '%';
   if (countEl) countEl.textContent = completed + ' / ' + HABITS_DATA.length + ' today';
@@ -3521,10 +3657,11 @@ function renderGoals() {
           ${goal.notes ? `<div class="goal-notes-text">${escapeHtml(goal.notes)}</div>` : ''}
         </div>
         <div class="goal-actions">
-          <button type="button" data-action="edit" data-id="${goal.id}">Edit</button>
-          <button type="button" class="danger" data-action="delete" data-id="${goal.id}">Delete</button>
+          <button type="button" data-action="edit" data-id="${goal.id}" title="Edit goal"><i data-lucide="edit-2" style="width:14px;height:14px"></i></button>
+          <button type="button" class="danger" data-action="delete" data-id="${goal.id}" title="Delete goal"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
         </div>
       </div>`).join('');
+    if (typeof lucide !== 'undefined') lucide.createIcons({ scope: list });
     list.querySelectorAll('.goal-progress-badge').forEach(btn => {
       btn.addEventListener('click', e => { e.stopPropagation(); const dd = list.querySelector(`.goal-progress-dropdown[data-id="${btn.dataset.id}"]`); if (dd) dd.classList.toggle('show'); });
     });
@@ -3593,6 +3730,7 @@ function saveGoalModal() {
     if (g) { g.title = title; g.scope = scope; g.progress = progress; g.notes = notes; }
   } else {
     goalsData.goals.push({ id: 'goal_'+Date.now()+'_'+Math.random().toString(36).slice(2,8), title, scope, progress, notes, createdAt: Date.now() });
+    logActivity('goal_added', 'New goal: ' + title, scope);
   }
   saveGoals(); closeGoalModal(); renderGoals();
 }
@@ -3716,6 +3854,74 @@ function initStatsPanel() {
   if (!panel.classList.contains('closed')) refreshStats();
   if (statsRefreshInterval) clearInterval(statsRefreshInterval);
   statsRefreshInterval = setInterval(() => { if (!panel.classList.contains('closed')) refreshStats(); }, 60000);
+}
+
+/* ──────────────────────────────────────────────
+   ACTIVITY HISTORY PANEL
+   ────────────────────────────────────────────── */
+const STORAGE_ACTIVITY_OPEN = 'dm_activity_open';
+const ACTIVITY_MAX = 100;
+
+function loadActivity() {
+  try { const raw = localStorage.getItem(STORAGE_ACTIVITY); if (raw) { const a = JSON.parse(raw); if (Array.isArray(a)) return a; } } catch(e) {}
+  return [];
+}
+function saveActivity(arr) { localStorage.setItem(STORAGE_ACTIVITY, JSON.stringify(arr)); markSyncDirty(); scheduleCloudPush(); }
+
+function logActivity(type, text, details) {
+  const activity = loadActivity();
+  activity.unshift({ type, text, details, timestamp: Date.now() });
+  if (activity.length > ACTIVITY_MAX) activity.length = ACTIVITY_MAX;
+  saveActivity(activity);
+  if (!document.getElementById('activity-panel').classList.contains('closed')) renderActivity();
+}
+
+function renderActivity() {
+  const list = document.getElementById('activity-list');
+  const activity = loadActivity();
+  if (!list) return;
+  if (!activity.length) { list.innerHTML = '<div class="empty-trash">No recent activity.</div>'; return; }
+
+  const icons = {
+    task_done: 'check-circle',
+    task_undone: 'circle',
+    task_deleted: 'trash-2',
+    habit_done: 'flame',
+    goal_added: 'target',
+    note_added: 'sticky-note'
+  };
+
+  list.innerHTML = activity.map(item => `
+    <div class="trash-row">
+      <div class="trash-row-text">
+        <div class="trash-name" style="display:flex;align-items:center;gap:8px;">
+          <i data-lucide="${icons[item.type] || 'activity'}" style="width:14px;height:14px;color:var(--muted)"></i>
+          ${escapeHtml(item.text)}
+        </div>
+        <div class="trash-detail">${new Date(item.timestamp).toLocaleString()} ${item.details ? '· ' + escapeHtml(item.details) : ''}</div>
+      </div>
+    </div>
+  `).join('');
+  if (typeof lucide !== 'undefined') lucide.createIcons({ scope: list });
+}
+
+function initActivityPanel() {
+  const panel = document.getElementById('activity-panel');
+  const head = document.getElementById('activity-head');
+  const isOpen = localStorage.getItem(STORAGE_ACTIVITY_OPEN) === '1';
+  if (isOpen) panel.classList.remove('closed');
+  
+  head.addEventListener('click', () => {
+    panel.classList.toggle('closed');
+    localStorage.setItem(STORAGE_ACTIVITY_OPEN, panel.classList.contains('closed') ? '0' : '1');
+    if (!panel.classList.contains('closed')) renderActivity();
+  });
+  
+  document.getElementById('btn-activity-clear').addEventListener('click', () => {
+    if (confirm('Clear activity history?')) { saveActivity([]); renderActivity(); }
+  });
+  
+  if (!panel.classList.contains('closed')) renderActivity();
 }
 
 /* ──────────────────────────────────────────────
