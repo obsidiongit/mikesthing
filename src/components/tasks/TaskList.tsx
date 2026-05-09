@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { useStore, Task, TaskCategory } from "@/store/useStore";
-import { GripVertical, Plus, CheckCircle2, Circle, ChevronDown, ChevronRight } from "lucide-react";
+import { GripVertical, Plus, CheckCircle2, Circle, ChevronDown, ChevronRight, Trash2, Tag, AlertCircle } from "lucide-react";
 import RichTextEditor from "../RichTextEditor";
 
 export default function TaskList({ category = "Active" }: { category?: TaskCategory }) {
-  const { tasks, addTask, updateTask, moveTask } = useStore();
+  const { tasks, addTask, updateTask, moveTask, deleteTask } = useStore();
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
@@ -164,14 +164,58 @@ export default function TaskList({ category = "Active" }: { category?: TaskCateg
                 </div>
               </div>
               {expandedTaskId === task.id && (
-                <div className="p-3 pt-0 border-t border-border/50 bg-background/50">
-                  <div className="mt-2 text-xs font-semibold text-gray-400 mb-2">Description / Notes</div>
-                  <RichTextEditor 
-                    content={task.description || ""}
-                    onChange={(content) => updateTask(task.id, { description: content })}
-                    placeholder="Add detailed task notes here..."
-                    minHeight="100px"
-                  />
+                <div className="p-3 border-t border-border/50 bg-background/50 flex flex-col gap-4">
+                  <div>
+                    <div className="text-xs font-semibold text-gray-400 mb-2">Description / Notes</div>
+                    <RichTextEditor 
+                      content={task.description || ""}
+                      onChange={(content) => updateTask(task.id, { description: content })}
+                      placeholder="Add detailed task notes here..."
+                      minHeight="100px"
+                    />
+                  </div>
+                  
+                  <div className="flex flex-wrap items-center justify-between gap-4 pt-2 border-t border-border/30">
+                    <div className="flex items-center gap-4">
+                      {/* Priority */}
+                      <div className="flex items-center gap-2">
+                        <AlertCircle size={14} className="text-gray-500" />
+                        <select
+                          className="bg-surface border border-border rounded text-xs text-white p-1 focus:outline-none focus:border-primary"
+                          value={task.priority}
+                          onChange={(e) => updateTask(task.id, { priority: e.target.value as any })}
+                        >
+                          <option value="none">No Priority</option>
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                          <option value="urgent">Urgent</option>
+                        </select>
+                      </div>
+                      
+                      {/* Tags */}
+                      <div className="flex items-center gap-2">
+                        <Tag size={14} className="text-gray-500" />
+                        <input
+                          type="text"
+                          className="bg-surface border border-border rounded text-xs text-white p-1 focus:outline-none focus:border-primary w-32"
+                          placeholder="tag1, tag2..."
+                          value={task.tags ? task.tags.join(", ") : ""}
+                          onChange={(e) => {
+                            const tags = e.target.value.split(",").map(t => t.trim()).filter(Boolean);
+                            updateTask(task.id, { tags });
+                          }}
+                        />
+                      </div>
+                    </div>
+                    
+                    <button 
+                      onClick={() => deleteTask(task.id)}
+                      className="flex items-center gap-1 text-xs text-red-400 hover:text-red-300 hover:bg-red-400/10 px-2 py-1 rounded transition-colors"
+                    >
+                      <Trash2 size={14} /> Delete Task
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
