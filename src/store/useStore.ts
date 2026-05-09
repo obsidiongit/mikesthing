@@ -65,6 +65,12 @@ export interface AppState {
   updateQuickLink: (id: string, updates: Partial<{ name: string; url: string }>) => void;
   removeQuickLink: (id: string) => void;
 
+  // Habits
+  habits: { id: string; name: string; completed: boolean }[];
+  toggleHabit: (id: string) => void;
+  addHabit: (name: string) => void;
+  removeHabit: (id: string) => void;
+
   // Scratchpad
   scratchpadContent: string;
   setScratchpadContent: (content: string) => void;
@@ -160,6 +166,23 @@ export const useStore = create<AppState>()(
         quickLinks: state.quickLinks.filter(l => l.id !== id)
       })),
 
+      // Habits
+      habits: [
+        { id: "1", name: "Drink Water (2L)", completed: false },
+        { id: "2", name: "Read 10 Pages", completed: true },
+        { id: "3", name: "Exercise (30m)", completed: false },
+        { id: "4", name: "Code Review", completed: false },
+      ],
+      toggleHabit: (id) => set((state) => ({
+        habits: state.habits.map(h => h.id === id ? { ...h, completed: !h.completed } : h)
+      })),
+      addHabit: (name) => set((state) => ({
+        habits: [...state.habits, { id: crypto.randomUUID(), name, completed: false }]
+      })),
+      removeHabit: (id) => set((state) => ({
+        habits: state.habits.filter(h => h.id !== id)
+      })),
+
       // Scratchpad
       scratchpadContent: '',
       setScratchpadContent: (content) => set({ scratchpadContent: content }),
@@ -178,6 +201,7 @@ export const useStore = create<AppState>()(
         scratchpadContent: state.scratchpadContent,
         calendarEvents: state.calendarEvents,
         quickLinks: state.quickLinks,
+        habits: state.habits,
       }),
     }
   )
