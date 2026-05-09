@@ -145,25 +145,169 @@
   }
   .btn-ghost:hover { color: var(--text); border-color: var(--border-strong); }
 
-  /* ── App shell ────────────────────────────── */
-  .app-wrap {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 32px 20px 80px;
-  }
-  .app-header {
+  /* ── New App Layout ───────────────────────── */
+  .app-container {
     display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 16px;
-    padding-bottom: 24px;
-    border-bottom: 1px solid var(--border);
-    margin-bottom: 20px;
+    min-height: 100vh;
+    background: var(--bg);
   }
-  .app-title { font-size: 24px; font-weight: 600; letter-spacing: -0.03em; color: var(--white); }
-  .app-meta { font-size: 12px; color: var(--muted); font-weight: 500; }
-  .header-actions { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+
+  /* Sidebar */
+  .sidebar {
+    width: 240px;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    z-index: 100;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .sidebar-header {
+    padding: 24px 20px;
+    border-bottom: 1px solid var(--border);
+  }
+  .sidebar-logo {
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    color: var(--white);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .sidebar-nav {
+    flex: 1;
+    padding: 20px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 500;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s;
+    border: none;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: var(--font);
+  }
+  .nav-item:hover {
+    color: var(--text);
+    background: var(--surface2);
+  }
+  .nav-item.active {
+    color: var(--white);
+    background: var(--border);
+  }
+  .sidebar-footer {
+    padding: 20px;
+    border-top: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Main Content Area */
+  .main-content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg);
+  }
+  .top-bar {
+    height: 64px;
+    padding: 0 32px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 90;
+  }
+  .top-bar-left { display: flex; align-items: center; gap: 16px; }
+  .view-title { font-size: 18px; font-weight: 600; color: var(--white); }
+  
+  .view-container {
+    flex: 1;
+    padding: 32px;
+    max-width: 1400px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  /* Views */
+  .app-view { display: none; }
+  .app-view.active { display: block; animation: viewFadeIn 0.3s cubic-bezier(0, 0, 0.2, 1); }
+
+  @keyframes viewFadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Dashboard Grid */
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+
+  /* Section Header Overrides */
+  .view-header {
+    margin-bottom: 32px;
+  }
+  .view-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    color: var(--white);
+    margin-bottom: 4px;
+  }
+  .view-header p {
+    font-size: 14px;
+    color: var(--muted);
+  }
+
+  @media (max-width: 1024px) {
+    .dashboard-grid { grid-template-columns: 1fr; }
+    .sidebar { width: 64px; }
+    .sidebar-logo span, .nav-item span, .sidebar-footer button span { display: none; }
+    .nav-item { justify-content: center; padding: 10px; }
+    .sidebar-logo { justify-content: center; }
+    .sidebar-header { padding: 20px 0; }
+  }
+
+  @media (max-width: 768px) {
+    .app-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; position: fixed; bottom: 0; top: auto; flex-direction: row; border-right: none; border-top: 1px solid var(--border); }
+    .sidebar-header, .sidebar-footer { display: none; }
+    .sidebar-nav { flex-direction: row; justify-content: space-around; padding: 8px; }
+    .nav-item { flex-direction: column; gap: 4px; font-size: 10px; }
+    .nav-item i { width: 20px !important; height: 20px !important; }
+    .main-content { padding-bottom: 80px; }
+    .top-bar { padding: 0 16px; }
+    .view-container { padding: 20px 16px; }
+  }
+
+  .app-wrap {
+    max-width: 1000px;
+    margin: 0 auto;
+  }
 
   /* ── Search ───────────────────────────────── */
   .search-wrap { margin-bottom: 20px; position: relative; }
@@ -720,15 +864,57 @@
   .links-category-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); padding: 8px 0 4px 0; margin: 4px 0 0 0; }
   .links-category:first-child .links-category-title { margin-top: 0; }
   .link-cards-row { display: flex; flex-wrap: wrap; gap: 8px; }
-  .link-card { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--surface2); border: 1px solid var(--border); cursor: pointer; transition: border-color 0.15s, background 0.15s; position: relative; text-decoration: none; color: inherit; min-width: 140px; flex: 1 1 140px; }
-  .link-card:hover { border-color: var(--border-strong); background: var(--bg); }
+  .link-card-wrapper {
+    display: flex;
+    flex: 1 1 140px;
+    min-width: 140px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .link-card-wrapper:hover { border-color: var(--border-strong); transform: translateY(-2px); }
+  .link-card {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    flex: 1;
+    min-width: 0;
+  }
   .link-emoji { font-size: 18px; width: 24px; text-align: center; flex-shrink: 0; }
   .link-text { flex: 1; min-width: 0; }
   .link-label { font-size: 13px; font-weight: 500; color: var(--text); }
   .link-url { font-size: 11px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .link-delete { font-size: 14px; color: var(--dim); background: none; border: none; cursor: pointer; padding: 4px 6px; flex-shrink: 0; opacity: 0; transition: opacity 0.15s, color 0.15s; line-height: 1; }
-  .link-card:hover .link-delete { opacity: 1; }
-  .link-delete:hover { color: var(--error); }
+  
+  .link-card-actions {
+    display: flex;
+    flex-direction: column;
+    border-left: 1px solid var(--border);
+    opacity: 0;
+    transition: opacity 0.15s;
+    background: var(--surface);
+  }
+  .link-card-wrapper:hover .link-card-actions { opacity: 1; }
+  .link-card-btn {
+    background: none;
+    border: none;
+    color: var(--dim);
+    cursor: pointer;
+    padding: 6px 8px;
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.1s;
+  }
+  .link-card-btn:hover { color: var(--white); background: var(--border); }
+  .link-card-btn.danger:hover { color: var(--error); background: #311; }
+
   .links-add-wrap { display: flex; justify-content: flex-start; padding-top: 4px; }
   .links-empty { font-size: 12px; color: var(--dim); text-align: center; padding: 24px 16px; background: var(--surface2); }
 
@@ -747,22 +933,35 @@
   .scratchpad-charcount { flex-shrink: 0; color: var(--dim); }
   .scratchpad-save-flash { font-size: 11px; color: var(--muted); opacity: 0; transition: opacity 0.3s; }
   .scratchpad-save-flash.show { opacity: 1; }
-  .scratchpad-compose { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .scratchpad-compose { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+  .scratch-toolbar { border: 1px solid var(--border); background: var(--bg); }
+  .scratch-editor { min-height: 80px; height: auto; border: 1px solid var(--border); border-top: none; }
   .scratchpad-compose-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
   .scratchpad-compose-row select {
     font-family: var(--font); font-size: 12px; padding: 8px 10px; border: 1px solid var(--border);
-    background: var(--bg); color: var(--text); min-width: 140px;
+    background: var(--bg); color: var(--text); min-width: 140px; border-radius: 4px;
   }
-  .scratchpad-list { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; }
+  .scratchpad-list { display: flex; flex-direction: column; gap: 8px; max-height: 420px; overflow-y: auto; padding-right: 4px; }
   .scratch-note {
-    display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+    display: flex; gap: 10px; align-items: stretch; padding: 12px;
     background: var(--surface2); border: 1px solid var(--border);
     border-left: 4px solid var(--scratch-tag, #555);
+    transition: transform 0.15s;
   }
-  .scratch-note-body { flex: 1; min-width: 0; font-size: 13px; line-height: 1.45; color: var(--text); white-space: pre-wrap; word-break: break-word; }
-  .scratch-note-meta { font-size: 10px; color: var(--dim); margin-top: 6px; }
-  .scratch-note-del { flex-shrink: 0; font-size: 11px; padding: 4px 8px; border: 1px solid var(--border); background: transparent; color: var(--muted); cursor: pointer; font-family: var(--font); }
-  .scratch-note-del:hover { color: var(--error); border-color: #633; }
+  .scratch-note:hover { transform: translateX(2px); border-color: var(--border-strong); }
+  .scratch-note-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .scratch-note-content { font-size: 14px; line-height: 1.5; color: var(--text); word-break: break-word; }
+  .scratch-note-content ul, .scratch-note-content ol { padding-left: 18px; margin: 4px 0; }
+  .scratch-note-meta { font-size: 10px; color: var(--dim); margin-top: auto; padding-top: 8px; }
+  .scratch-note-actions { display: flex; flex-direction: column; gap: 4px; opacity: 0; transition: opacity 0.12s; }
+  .scratch-note:hover .scratch-note-actions { opacity: 1; }
+  .scratch-note-btn {
+    font-family: var(--font); font-size: 11px; font-weight: 500; padding: 4px 8px;
+    border: 1px solid var(--border); background: var(--surface); color: var(--muted);
+    cursor: pointer; transition: all 0.1s;
+  }
+  .scratch-note-btn:hover { color: var(--text); border-color: var(--border-strong); }
+  .scratch-note-btn.danger:hover { color: var(--error); border-color: #633; }
 
   /* ── Habit Tracker Panel ─────────────────── */
   .habits-panel { border: 1px solid var(--border); background: var(--surface); margin-bottom: 28px; }
@@ -1000,209 +1199,301 @@
 </div>
 
 <!-- App -->
-<div id="app" class="app-wrap hidden">
-  <header class="app-header">
-    <div>
-      <div class="app-title">Devmike</div>
-      <div class="app-meta" id="header-date"></div>
-    </div>
-    <div class="header-actions">
-      <span class="sync-badge" id="sync-badge" title="Cloud sync status">Local only</span>
-      <button type="button" class="btn btn-ghost" id="btn-sync"><i data-lucide="cloud" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Cloud sync</button>
-      <button type="button" class="btn btn-ghost" id="btn-trash"><i data-lucide="trash" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Recover deleted</button>
-      <button type="button" class="btn btn-ghost" id="btn-change-pin"><i data-lucide="lock" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Change PIN</button>
-      <button type="button" class="btn btn-ghost" id="btn-lock"><i data-lucide="log-out" style="width:14px;height:14px;vertical-align:middle;margin-right:6px"></i>Lock</button>
-    </div>
-  </header>
-
-  <!-- Search -->
-  <div class="search-wrap" id="search-wrap">
-    <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--dim)"></i>
-    <input type="text" class="search-input" id="search-input" placeholder="Search tasks… (or press N to add)" autocomplete="off" spellcheck="false" style="padding-left:38px">
-    <button type="button" class="search-clear" id="search-clear" aria-label="Clear search"><i data-lucide="x" style="width:16px;height:16px"></i></button>
-  </div>
-
-  <!-- Quick Links Panel -->
-  <div class="links-panel" id="links-panel">
-    <div class="links-head" id="links-head">
-      <h2>Quick Links</h2>
-      <span class="links-toggle" id="links-toggle">▾</span>
-    </div>
-    <div class="links-content" id="links-content">
-      <div id="links-container"></div>
-      <div class="links-add-wrap">
-        <button type="button" class="btn btn-ghost" id="btn-add-link"><i data-lucide="plus" style="width:12px;height:12px;margin-right:6px"></i>Add link</button>
+<div id="app" class="app-container hidden">
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-header">
+      <div class="sidebar-logo">
+        <i data-lucide="zap" style="color: var(--accent-today)"></i>
+        <span>Devmike</span>
       </div>
     </div>
-  </div>
-
-  <!-- Scratchpad Panel -->
-  <div class="scratchpad-panel" id="scratchpad-panel">
-    <div class="scratchpad-head" id="scratchpad-head">
-      <div class="scratchpad-head-label"><span>Scratchpad</span></div>
-      <span class="scratchpad-toggle-icon" id="scratchpad-toggle-icon">▾</span>
+    <div class="sidebar-nav">
+      <button class="nav-item active" data-view="home">
+        <i data-lucide="layout-dashboard"></i>
+        <span>Home</span>
+      </button>
+      <button class="nav-item" data-view="tasks">
+        <i data-lucide="check-square"></i>
+        <span>Tasks</span>
+      </button>
+      <button class="nav-item" data-view="calendar">
+        <i data-lucide="calendar"></i>
+        <span>Calendar</span>
+      </button>
+      <button class="nav-item" data-view="habits">
+        <i data-lucide="flame"></i>
+        <span>Habits & Goals</span>
+      </button>
+      <button class="nav-item" data-view="analytics">
+        <i data-lucide="bar-chart-3"></i>
+        <span>Activity</span>
+      </button>
     </div>
-    <div class="scratchpad-body" id="scratchpad-body">
-      <div class="scratchpad-compose">
-        <textarea id="scratchpad-new" class="scratchpad-textarea" placeholder="Type a note, pick a tag, then Add note…" autocomplete="off" spellcheck="true" rows="3"></textarea>
-        <div class="scratchpad-compose-row">
-          <label for="scratchpad-new-tag" class="sr-only">Tag color</label>
-          <select id="scratchpad-new-tag" aria-label="Note tag color"></select>
-          <button type="button" class="btn btn-primary" id="scratchpad-add-btn">Add note</button>
+    <div class="sidebar-footer">
+      <button class="nav-item" id="btn-sync-sidebar">
+        <i data-lucide="refresh-cw"></i>
+        <span>Sync Settings</span>
+      </button>
+      <button class="nav-item" id="btn-lock-sidebar">
+        <i data-lucide="log-out"></i>
+        <span>Lock</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <header class="top-bar">
+      <div class="top-bar-left">
+        <div class="view-title" id="current-view-title">Dashboard</div>
+        <div class="app-meta" id="header-date"></div>
+      </div>
+      <div class="header-actions">
+        <span class="sync-badge" id="sync-badge" title="Cloud sync status">Local only</span>
+        <button type="button" class="btn btn-ghost" id="btn-trash" title="Recover deleted"><i data-lucide="trash-2" style="width:14px;height:14px"></i></button>
+        <button type="button" class="btn btn-ghost" id="btn-change-pin" title="Change PIN"><i data-lucide="lock" style="width:14px;height:14px"></i></button>
+      </div>
+    </header>
+
+    <div class="view-container">
+      <!-- Search (Sticky at top of content area) -->
+      <div class="search-wrap" id="search-wrap">
+        <i data-lucide="search" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);width:16px;height:16px;color:var(--dim)"></i>
+        <input type="text" class="search-input" id="search-input" placeholder="Search tasks… (or press N to add)" autocomplete="off" spellcheck="false" style="padding-left:38px">
+        <button type="button" class="search-clear" id="search-clear" aria-label="Clear search"><i data-lucide="x" style="width:16px;height:16px"></i></button>
+      </div>
+
+      <!-- View: Home -->
+      <div id="view-home" class="app-view active">
+        <div class="view-header">
+          <h1>Welcome back</h1>
+          <p id="home-greeting">Here is what's on your plate for today.</p>
+        </div>
+        <div class="dashboard-grid">
+          <div class="dashboard-main">
+            <!-- Priority Tasks (Home) -->
+            <div class="section" data-cat="priority">
+              <div class="section-head">
+                <h2>Top Priorities</h2>
+                <button type="button" class="btn btn-add btn-add-task" data-cat="priority"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
+              </div>
+              <div class="task-list" id="tasks-priority-home" data-cat="priority"></div>
+            </div>
+            
+            <!-- Scratchpad (Home) -->
+            <div class="scratchpad-panel" id="scratchpad-panel">
+              <div class="scratchpad-head" id="scratchpad-head">
+                <div class="scratchpad-head-label"><span>Scratchpad</span></div>
+                <span class="scratchpad-toggle-icon" id="scratchpad-toggle-icon">▾</span>
+              </div>
+              <div class="scratchpad-body" id="scratchpad-body">
+                <div class="scratchpad-compose">
+                  <div class="rte-toolbar scratch-toolbar">
+                    <button type="button" class="rte-btn" data-command="bold" title="Bold"><i data-lucide="bold"></i></button>
+                    <button type="button" class="rte-btn" data-command="italic" title="Italic"><i data-lucide="italic"></i></button>
+                    <button type="button" class="rte-btn" data-command="insertUnorderedList" title="Bullet List"><i data-lucide="list"></i></button>
+                  </div>
+                  <div id="scratchpad-new-editor" class="rte-editor scratch-editor" contenteditable="true" placeholder="Type a note..."></div>
+                  <div class="scratchpad-compose-row">
+                    <label for="scratchpad-new-tag" class="sr-only">Tag color</label>
+                    <select id="scratchpad-new-tag" aria-label="Note tag color"></select>
+                    <button type="button" class="btn btn-primary" id="scratchpad-add-btn">Add note</button>
+                  </div>
+                </div>
+                <div id="scratchpad-list" class="scratchpad-list"></div>
+                <div class="scratchpad-footer">
+                  <div class="scratchpad-charcount" id="scratchpad-count-label">0 notes</div>
+                  <span class="scratchpad-save-flash" id="scratchpad-save-flash">Saved</span>
+                  <button type="button" class="btn btn-ghost" id="scratchpad-clear-btn">Clear all</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div class="dashboard-sidebar">
+            <!-- Quick Stats Summary -->
+            <div class="daily-panel" id="daily-panel-wrap">
+              <div class="daily-head">
+                <span>Today's Progress</span>
+                <span class="daily-count" id="daily-count">0 / 0</span>
+              </div>
+              <div class="progress-bar-wrap"><div class="progress-bar-fill" id="daily-progress"></div></div>
+              <div class="task-list" id="daily-list"></div>
+            </div>
+
+            <!-- Quick Links (Home) -->
+            <div class="links-panel" id="links-panel">
+              <div class="links-head" id="links-head">
+                <h2>Quick Links</h2>
+                <span class="links-toggle" id="links-toggle">▾</span>
+              </div>
+              <div class="links-content" id="links-content">
+                <div id="links-container"></div>
+                <div class="links-add-wrap">
+                  <button type="button" class="btn btn-ghost" id="btn-add-link"><i data-lucide="plus" style="width:12px;height:12px;margin-right:6px"></i>Add link</button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-      <div id="scratchpad-list" class="scratchpad-list"></div>
-      <div class="scratchpad-footer">
-        <div class="scratchpad-charcount" id="scratchpad-count-label">0 notes</div>
-        <span class="scratchpad-save-flash" id="scratchpad-save-flash">Saved</span>
-        <button type="button" class="btn btn-ghost" id="scratchpad-clear-btn">Clear all</button>
-      </div>
-    </div>
-  </div>
 
-  <!-- Calendar / schedule -->
-  <div class="calendar-panel" id="calendar-panel">
-    <div class="calendar-head">
-      <span id="cal-panel-title">Schedule</span>
-      <button type="button" class="calendar-toggle" id="calendar-toggle">▾</button>
-    </div>
-    <div id="calendar-content">
-      <div class="calendar-controls">
-        <div class="calendar-view-toggle" id="cal-view-toggle">
-          <button type="button" class="calendar-view-btn" data-cal-view="day">Day</button>
-          <button type="button" class="calendar-view-btn" data-cal-view="week">Week</button>
-          <button type="button" class="calendar-view-btn" data-cal-view="month">Month</button>
+      <!-- View: Tasks -->
+      <div id="view-tasks" class="app-view">
+        <div class="view-header">
+          <h1>My Tasks</h1>
+          <p>Organize and manage your workload across all lists.</p>
         </div>
-        <button type="button" class="calendar-nav-btn" id="cal-prev"><i data-lucide="chevron-left" style="width:14px;height:14px"></i></button>
-        <button type="button" class="calendar-nav-btn" id="cal-today">Today</button>
-        <button type="button" class="calendar-nav-btn" id="cal-next"><i data-lucide="chevron-right" style="width:14px;height:14px"></i></button>
-        <div class="calendar-date-range" id="cal-date-range"></div>
+        
+        <!-- Priority -->
+        <div class="section" data-cat="priority">
+          <div class="section-head">
+            <h2>Priority</h2>
+            <button type="button" class="btn btn-add btn-add-task" data-cat="priority"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
+          </div>
+          <div class="task-list" id="tasks-priority" data-cat="priority"></div>
+        </div>
+
+        <!-- Active -->
+        <div class="section" data-cat="active">
+          <div class="section-head">
+            <h2>Active</h2>
+            <button type="button" class="btn btn-add btn-add-task" data-cat="active"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
+          </div>
+          <div class="task-list" id="tasks-active" data-cat="active"></div>
+        </div>
+
+        <!-- Later -->
+        <div class="section" data-cat="later">
+          <div class="section-head">
+            <h2>Later / backlog</h2>
+            <button type="button" class="btn btn-add btn-add-task" data-cat="later"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
+          </div>
+          <div class="task-list" id="tasks-later" data-cat="later"></div>
+        </div>
+
+        <!-- Completed tasks -->
+        <div id="completed-section" class="completed-panel" style="display:none;">
+          <div class="section-head">
+            <h2>Completed</h2>
+            <button type="button" class="completed-toggle" id="btn-clear-completed">Clear all</button>
+          </div>
+          <div class="task-list" id="tasks-completed"></div>
+        </div>
+
+        <!-- Utility Footer -->
+        <div class="footer-actions">
+          <button type="button" class="btn btn-ghost" id="btn-reset-period">Clear period completions</button>
+          <button type="button" class="btn btn-ghost" id="btn-export">Export JSON</button>
+          <button type="button" class="btn btn-ghost" id="btn-import">Import JSON</button>
+        </div>
       </div>
-      <div id="calendar-main">
-        <div class="calendar-days" id="calendar-days"></div>
+
+      <!-- View: Calendar -->
+      <div id="view-calendar" class="app-view">
+        <div class="view-header">
+          <h1>Schedule</h1>
+          <p>Plan your weeks and visualize upcoming deadlines.</p>
+        </div>
+        <div class="calendar-panel" id="calendar-panel">
+          <div class="calendar-head">
+            <span id="cal-panel-title">Full Schedule</span>
+            <button type="button" class="calendar-toggle" id="calendar-toggle">▾</button>
+          </div>
+          <div id="calendar-content">
+            <div class="calendar-controls">
+              <div class="calendar-view-toggle" id="cal-view-toggle">
+                <button type="button" class="calendar-view-btn" data-cal-view="day">Day</button>
+                <button type="button" class="calendar-view-btn" data-cal-view="week">Week</button>
+                <button type="button" class="calendar-view-btn" data-cal-view="month">Month</button>
+              </div>
+              <button type="button" class="calendar-nav-btn" id="cal-prev"><i data-lucide="chevron-left" style="width:14px;height:14px"></i></button>
+              <button type="button" class="calendar-nav-btn" id="cal-today">Today</button>
+              <button type="button" class="calendar-nav-btn" id="cal-next"><i data-lucide="chevron-right" style="width:14px;height:14px"></i></button>
+              <div class="calendar-date-range" id="cal-date-range"></div>
+            </div>
+            <div id="calendar-main">
+              <div class="calendar-days" id="calendar-days"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View: Habits -->
+      <div id="view-habits" class="app-view">
+        <div class="view-header">
+          <h1>Habits & Goals</h1>
+          <p>Track your daily consistency and long-term objectives.</p>
+        </div>
+        
+        <div class="habits-panel" id="habits-panel-wrap">
+          <div class="habits-head">
+            <span>Daily Habits</span>
+            <div class="habits-toggle-wrap">
+              <span class="habits-count" id="habits-count">0 / 0 today</span>
+              <button type="button" class="habits-toggle-btn" id="habits-toggle">▼</button>
+              <button type="button" class="habits-btn-add" id="habits-btn-add"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
+            </div>
+          </div>
+          <div class="habits-progress-bar-wrap"><div class="habits-progress-bar-fill" id="habits-progress"></div></div>
+          <div class="habits-list" id="habits-list"><div class="habits-empty">No habits yet — add one to get started</div></div>
+        </div>
+
+        <div class="goals-panel" id="goals-panel">
+          <div class="goals-head" id="goals-head-trigger">
+            <span class="goals-title">Weekly Goals / OKRs</span>
+            <button type="button" class="goals-toggle">▾</button>
+          </div>
+          <div class="goals-body" id="goals-body">
+            <div class="goals-summary" id="goals-summary">Week: no goals yet</div>
+            <div class="goals-tabs">
+              <button type="button" class="goals-tab-btn active" data-tab="week">This Week</button>
+              <button type="button" class="goals-tab-btn" data-tab="month">This Month</button>
+            </div>
+            <div class="goals-list" id="goals-list"></div>
+            <div class="goals-empty" id="goals-empty">No goals yet. Add one to get started.</div>
+            <div class="goals-add-btn-wrap">
+              <button type="button" class="btn btn-primary" id="btn-add-goal"><i data-lucide="plus" style="width:14px;height:14px;margin-right:6px"></i>Add goal</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- View: Analytics -->
+      <div id="view-analytics" class="app-view">
+        <div class="view-header">
+          <h1>Activity & Analytics</h1>
+          <p>Review your productivity trends and historical log.</p>
+        </div>
+        
+        <div id="stats-panel" class="stats-panel" style="margin-bottom: 24px;">
+          <div class="stats-head" id="stats-head">
+            <span>Statistics Summary</span>
+          </div>
+          <div class="stats-body">
+            <div class="stats-grid" id="stats-grid"></div>
+            <div class="stats-footer">
+              <div class="stats-timestamp" id="stats-timestamp">Last updated: just now</div>
+              <button type="button" class="btn btn-ghost stats-refresh" id="btn-stats-refresh">Refresh</button>
+            </div>
+          </div>
+        </div>
+
+        <div id="activity-panel" class="stats-panel">
+          <div class="stats-head" id="activity-head">
+            <span>Full Activity Log</span>
+          </div>
+          <div class="stats-body">
+            <div id="activity-list" class="trash-list"></div>
+            <div class="stats-footer">
+              <button type="button" class="btn btn-ghost" id="btn-activity-clear">Clear history</button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- Daily recurring panel -->
-  <div class="daily-panel" id="daily-panel-wrap">
-    <div class="daily-head">
-      <span>Today — recurring</span>
-      <span class="daily-count" id="daily-count">0 / 0</span>
-    </div>
-    <div class="progress-bar-wrap"><div class="progress-bar-fill" id="daily-progress"></div></div>
-    <div class="task-list" id="daily-list"></div>
-  </div>
-
-  <!-- Habits Tracker -->
-  <div class="habits-panel" id="habits-panel-wrap">
-    <div class="habits-head">
-      <span>Habits</span>
-      <div class="habits-toggle-wrap">
-        <span class="habits-count" id="habits-count">0 / 0 today</span>
-        <button type="button" class="habits-toggle-btn" id="habits-toggle">▼</button>
-        <button type="button" class="habits-btn-add" id="habits-btn-add"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
-      </div>
-    </div>
-    <div class="habits-progress-bar-wrap"><div class="habits-progress-bar-fill" id="habits-progress"></div></div>
-    <div class="habits-list" id="habits-list"><div class="habits-empty">No habits yet — add one to get started</div></div>
-  </div>
-
-  <!-- Priority -->
-  <div class="section" data-cat="priority">
-    <div class="section-head">
-      <h2>Priority</h2>
-      <button type="button" class="btn btn-add btn-add-task" data-cat="priority"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
-    </div>
-    <div class="task-list" id="tasks-priority" data-cat="priority"></div>
-  </div>
-
-  <!-- Active -->
-  <div class="section" data-cat="active">
-    <div class="section-head">
-      <h2>Active</h2>
-      <button type="button" class="btn btn-add btn-add-task" data-cat="active"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
-    </div>
-    <div class="task-list" id="tasks-active" data-cat="active"></div>
-  </div>
-
-  <!-- Later -->
-  <div class="section" data-cat="later">
-    <div class="section-head">
-      <h2>Later / backlog</h2>
-      <button type="button" class="btn btn-add btn-add-task" data-cat="later"><i data-lucide="plus" style="width:12px;height:12px;margin-right:4px"></i>Add</button>
-    </div>
-    <div class="task-list" id="tasks-later" data-cat="later"></div>
-  </div>
-
-  <!-- Weekly Goals / OKRs -->
-  <div class="goals-panel" id="goals-panel">
-    <div class="goals-head" id="goals-head-trigger">
-      <span class="goals-title">Weekly Goals / OKRs</span>
-      <button type="button" class="goals-toggle">▾</button>
-    </div>
-    <div class="goals-body" id="goals-body">
-      <div class="goals-summary" id="goals-summary">Week: no goals yet</div>
-      <div class="goals-tabs">
-        <button type="button" class="goals-tab-btn active" data-tab="week">This Week</button>
-        <button type="button" class="goals-tab-btn" data-tab="month">This Month</button>
-      </div>
-      <div class="goals-list" id="goals-list"></div>
-      <div class="goals-empty" id="goals-empty">No goals yet. Add one to get started.</div>
-      <div class="goals-add-btn-wrap">
-        <button type="button" class="btn btn-primary" id="btn-add-goal"><i data-lucide="plus" style="width:14px;height:14px;margin-right:6px"></i>Add goal</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Completed one-time tasks -->
-  <div id="completed-section" class="completed-panel" style="display:none;">
-    <div class="section-head">
-      <h2>Completed</h2>
-      <button type="button" class="completed-toggle" id="btn-clear-completed">Clear all</button>
-    </div>
-    <div class="task-list" id="tasks-completed"></div>
-  </div>
-
-  <!-- Footer -->
-  <div class="footer-actions">
-    <button type="button" class="btn btn-ghost" id="btn-reset-period">Clear period completions</button>
-    <button type="button" class="btn btn-ghost" id="btn-export">Export JSON</button>
-    <button type="button" class="btn btn-ghost" id="btn-import">Import JSON</button>
-  </div>
-
-  <!-- Analytics / Stats Panel -->
-  <div id="stats-panel" class="stats-panel closed">
-    <div class="stats-head" id="stats-head">
-      <span>Analytics</span>
-      <div class="stats-head-actions">
-        <span class="stats-toggle-icon">▸</span>
-      </div>
-    </div>
-    <div class="stats-body">
-      <div class="stats-grid" id="stats-grid"></div>
-      <div class="stats-footer">
-        <div class="stats-timestamp" id="stats-timestamp">Last updated: just now</div>
-        <button type="button" class="btn btn-ghost stats-refresh" id="btn-stats-refresh">Refresh</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Activity History Panel -->
-  <div id="activity-panel" class="stats-panel closed" style="margin-top: 10px;">
-    <div class="stats-head" id="activity-head">
-      <span>Activity History</span>
-      <div class="stats-head-actions">
-        <span class="stats-toggle-icon">▸</span>
-      </div>
-    </div>
-    <div class="stats-body">
-      <div id="activity-list" class="trash-list"></div>
-      <div class="stats-footer">
-        <button type="button" class="btn btn-ghost" id="btn-activity-clear">Clear history</button>
-      </div>
-    </div>
-  </div>
+  </main>
 </div>
 
 <!-- Add / Edit task modal -->
@@ -1396,6 +1687,29 @@ create policy "devmike_rw" on devmike_sync
     <div class="modal-actions">
       <button type="button" class="btn btn-ghost" id="modal-goal-cancel">Cancel</button>
       <button type="button" class="btn btn-primary" id="modal-goal-save">Save goal</button>
+    </div>
+  </div>
+</div>
+<!-- Add/Edit Scratchpad Note Modal -->
+<div id="modal-scratch" class="modal-overlay">
+  <div class="modal-box">
+    <div class="modal-title" id="modal-scratch-title">Edit note</div>
+    <div class="field">
+      <label>Content</label>
+      <div class="rte-toolbar scratch-modal-toolbar">
+        <button type="button" class="rte-btn" data-command="bold" title="Bold"><i data-lucide="bold"></i></button>
+        <button type="button" class="rte-btn" data-command="italic" title="Italic"><i data-lucide="italic"></i></button>
+        <button type="button" class="rte-btn" data-command="insertUnorderedList" title="Bullet List"><i data-lucide="list"></i></button>
+      </div>
+      <div id="modal-scratch-editor" class="rte-editor" contenteditable="true" placeholder="Enter note..."></div>
+    </div>
+    <div class="field">
+      <label for="f-scratch-tag">Tag</label>
+      <select id="f-scratch-tag"></select>
+    </div>
+    <div class="modal-actions">
+      <button type="button" class="btn btn-ghost" id="modal-scratch-cancel">Cancel</button>
+      <button type="button" class="btn btn-primary" id="modal-scratch-save">Save note</button>
     </div>
   </div>
 </div>
@@ -2197,79 +2511,83 @@ function toggleTask(task) {
 function render() {
   // Daily panel
   const dailyEl = document.getElementById('daily-list');
-  dailyEl.innerHTML = '';
-  const daily = dailyTasks();
-  if (daily.length === 0) {
-    dailyEl.innerHTML = '<div class="empty-trash" style="padding:20px 16px">No daily recurring tasks. Add one and set recurrence to Daily.</div>';
-  } else {
-    daily.forEach(t => dailyEl.appendChild(buildTaskRow(t, true, null)));
+  if (dailyEl) {
+    dailyEl.innerHTML = '';
+    const daily = dailyTasks();
+    if (daily.length === 0) {
+      dailyEl.innerHTML = '<div class="empty-trash" style="padding:20px 16px">No daily recurring tasks. Add one and set recurrence to Daily.</div>';
+    } else {
+      daily.forEach(t => dailyEl.appendChild(buildTaskRow(t, true, null)));
+    }
   }
 
   // Category sections — filter out completed one-time tasks
   const completedTasks = [];
   CATEGORIES.forEach(cat => {
     const el = document.getElementById('tasks-' + cat);
-    el.innerHTML = '';
+    const homeEl = cat === 'priority' ? document.getElementById('tasks-priority-home') : null;
+    
+    if (el) el.innerHTML = '';
+    if (homeEl) homeEl.innerHTML = '';
+
     TASK_DATA[cat].forEach(t => {
       if (t.freq === 'one-time' && isDone(t)) {
         completedTasks.push({ task: t, cat });
       } else {
-        el.appendChild(buildTaskRow(t, false, cat));
+        if (el) el.appendChild(buildTaskRow(t, false, cat));
+        if (homeEl) homeEl.appendChild(buildTaskRow(t, false, cat));
       }
     });
 
-    // Wire up drop target on the list container
-    el.addEventListener('dragover', e => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      el.classList.add('drag-over');
-      // If dragging over the list but not over any specific row, set drop at end
-      if (!dropTargetId) {
-        clearDropIndicators();
-      }
-    });
-    el.addEventListener('dragleave', e => {
-      if (!el.contains(e.relatedTarget)) {
+    if (el) {
+      // Wire up drop target on the list container
+      el.addEventListener('dragover', e => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        el.classList.add('drag-over');
+        if (!dropTargetId) clearDropIndicators();
+      });
+      el.addEventListener('dragleave', e => {
+        if (!el.contains(e.relatedTarget)) el.classList.remove('drag-over');
+      });
+      el.addEventListener('drop', e => {
+        e.preventDefault();
         el.classList.remove('drag-over');
-      }
-    });
-    el.addEventListener('drop', e => {
-      e.preventDefault();
-      el.classList.remove('drag-over');
-      clearDropIndicators();
-      if (!dragSrcId) return;
-      const src = findTaskAndCategory(dragSrcId);
-      if (!src) return;
-      const taskToMove = deepClone(src.task);
-      // Remove from source
-      TASK_DATA[src.cat].splice(src.idx, 1);
-      // Insert in destination
-      if (dropTargetId && dropTargetId !== dragSrcId) {
-        const dstIdx = TASK_DATA[cat].findIndex(t => t.id === dropTargetId);
-        if (dstIdx >= 0) {
-          const insertAt = dropPosition === 'before' ? dstIdx : dstIdx + 1;
-          TASK_DATA[cat].splice(insertAt, 0, taskToMove);
+        clearDropIndicators();
+        if (!dragSrcId) return;
+        const src = findTaskAndCategory(dragSrcId);
+        if (!src) return;
+        const taskToMove = deepClone(src.task);
+        TASK_DATA[src.cat].splice(src.idx, 1);
+        if (dropTargetId && dropTargetId !== dragSrcId) {
+          const dstIdx = TASK_DATA[cat].findIndex(t => t.id === dropTargetId);
+          if (dstIdx >= 0) {
+            const insertAt = dropPosition === 'before' ? dstIdx : dstIdx + 1;
+            TASK_DATA[cat].splice(insertAt, 0, taskToMove);
+          } else {
+            TASK_DATA[cat].push(taskToMove);
+          }
         } else {
           TASK_DATA[cat].push(taskToMove);
         }
-      } else {
-        TASK_DATA[cat].push(taskToMove);
-      }
-      dropTargetId = null;
-      saveTaskData();
-      render();
-    });
+        dropTargetId = null;
+        saveTaskData();
+        render();
+      });
+    }
   });
 
   // Completed section
   const completedSection = document.getElementById('completed-section');
   const completedEl = document.getElementById('tasks-completed');
-  completedEl.innerHTML = '';
-  if (completedTasks.length > 0) {
-    completedSection.style.display = '';
-    completedTasks.forEach(({ task, cat }) => completedEl.appendChild(buildTaskRow(task, false, cat)));
-  } else {
-    completedSection.style.display = 'none';
+  if (completedEl) {
+    completedEl.innerHTML = '';
+    if (completedTasks.length > 0) {
+      if (completedSection) completedSection.style.display = '';
+      completedTasks.forEach(({ task, cat }) => completedEl.appendChild(buildTaskRow(task, false, cat)));
+    } else {
+      if (completedSection) completedSection.style.display = 'none';
+    }
   }
 
   // Date in header
@@ -2356,25 +2674,28 @@ let modalMode   = 'add';
 let modalEditId = null;
 
 function initRTE() {
-  const editor = document.getElementById('f-sub-editor');
-  const toolbar = document.querySelector('.rte-toolbar');
-  if (!editor || !toolbar) return;
+  document.querySelectorAll('.rte-toolbar').forEach(toolbar => {
+    const editor = toolbar.nextElementSibling.classList.contains('rte-editor') 
+      ? toolbar.nextElementSibling 
+      : toolbar.parentElement.querySelector('.rte-editor');
+    
+    if (!editor) return;
 
-  toolbar.querySelectorAll('.rte-btn').forEach(btn => {
-    btn.addEventListener('click', e => {
-      e.preventDefault();
-      const command = btn.dataset.command;
-      const value = btn.dataset.value || null;
-      document.execCommand(command, false, value);
-      editor.focus();
+    toolbar.querySelectorAll('.rte-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.preventDefault();
+        const command = btn.dataset.command;
+        const value = btn.dataset.value || null;
+        document.execCommand(command, false, value);
+        editor.focus();
+      });
     });
-  });
 
-  // Basic styling reinforcement on paste
-  editor.addEventListener('paste', e => {
-    e.preventDefault();
-    const text = e.clipboardData.getData('text/plain');
-    document.execCommand('insertText', false, text);
+    editor.addEventListener('paste', e => {
+      e.preventDefault();
+      const text = e.clipboardData.getData('text/plain');
+      document.execCommand('insertText', false, text);
+    });
   });
 }
 
@@ -2845,6 +3166,34 @@ async function saveSyncSettings() {
 
 let devmikeSyncListenersBound = false;
 
+function switchView(viewId) {
+  // Update sidebar buttons
+  document.querySelectorAll('.nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === viewId);
+  });
+
+  // Update views
+  document.querySelectorAll('.app-view').forEach(view => {
+    view.classList.toggle('active', view.id === `view-${viewId}`);
+  });
+
+  // Update title
+  const titleMap = {
+    'home': 'Dashboard',
+    'tasks': 'All Tasks',
+    'calendar': 'Schedule',
+    'habits': 'Habits & Goals',
+    'analytics': 'Activity'
+  };
+  document.getElementById('current-view-title').textContent = titleMap[viewId] || 'Dashboard';
+
+  // Persistence
+  localStorage.setItem('dm_current_view', viewId);
+  
+  // Refresh Lucide icons for the new view
+  if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
 function bootApp() {
   if (typeof lucide !== 'undefined') lucide.createIcons();
   initRTE();
@@ -2858,6 +3207,18 @@ function bootApp() {
   initActivityPanel();
   initPomodoro();
   updateSyncBadge();
+
+  // Restore previous view
+  const savedView = localStorage.getItem('dm_current_view') || 'home';
+  switchView(savedView);
+
+  // Sidebar listeners
+  document.querySelectorAll('.nav-item[data-view]').forEach(btn => {
+    btn.addEventListener('click', () => switchView(btn.dataset.view));
+  });
+
+  document.getElementById('btn-sync-sidebar').addEventListener('click', openSyncModal);
+  document.getElementById('btn-lock-sidebar').addEventListener('click', lockApp);
 
   if (!devmikeSyncListenersBound) {
     devmikeSyncListenersBound = true;
@@ -3050,11 +3411,16 @@ function renderLinks() {
   Object.keys(grouped).sort().forEach(cat => {
     html += `<div class="links-category"><div class="links-category-title">${escapeHtml(cat)}</div><div class="link-cards-row">`;
     grouped[cat].forEach(link => {
-      html += `<a href="${escapeHtml(link.url||'')}" target="_blank" rel="noopener" class="link-card" onclick="event.stopPropagation()">
-        <span class="link-emoji">${link.emoji||'🔗'}</span>
-        <div class="link-text"><div class="link-label">${escapeHtml(link.label||'')}</div><div class="link-url">${escapeHtml(link.url||'')}</div></div>
-        <button type="button" class="link-delete" onclick="deleteLink('${escapeHtml(link.id||'')}',event)" title="Delete"><i data-lucide="x" style="width:12px;height:12px"></i></button>
-      </a>`;
+      html += `<div class="link-card-wrapper">
+        <a href="${escapeHtml(link.url||'')}" target="_blank" rel="noopener" class="link-card">
+          <span class="link-emoji">${link.emoji||'🔗'}</span>
+          <div class="link-text"><div class="link-label">${escapeHtml(link.label||'')}</div><div class="link-url">${escapeHtml(link.url||'')}</div></div>
+        </a>
+        <div class="link-card-actions">
+          <button type="button" class="link-card-btn" onclick="openLinksModal('edit','${escapeHtml(link.id||'')}')" title="Edit"><i data-lucide="edit-2" style="width:12px;height:12px"></i></button>
+          <button type="button" class="link-card-btn danger" onclick="deleteLink('${escapeHtml(link.id||'')}',event)" title="Delete"><i data-lucide="x" style="width:12px;height:12px"></i></button>
+        </div>
+      </div>`;
     });
     html += '</div></div>';
   });
@@ -3150,27 +3516,67 @@ function renderScratchpadList() {
     const body = document.createElement('div');
     body.className = 'scratch-note-body';
     const textDiv = document.createElement('div');
-    textDiv.textContent = n.text;
+    textDiv.className = 'scratch-note-content';
+    textDiv.innerHTML = n.text; // Support HTML
     const metaRow = document.createElement('div');
     metaRow.className = 'scratch-note-meta';
     const ts = n.createdAt ? new Date(n.createdAt).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '';
     metaRow.textContent = [meta.label, ts].filter(Boolean).join(' · ');
     body.appendChild(textDiv);
     body.appendChild(metaRow);
-    const del = document.createElement('button');
-    del.type = 'button';
-    del.className = 'scratch-note-del';
-    del.textContent = 'Delete';
-    del.addEventListener('click', e => {
+    const actions = document.createElement('div');
+    actions.className = 'scratch-note-actions';
+    const editBtn = document.createElement('button');
+    editBtn.type = 'button';
+    editBtn.className = 'scratch-note-btn';
+    editBtn.textContent = 'Edit';
+    editBtn.addEventListener('click', e => {
+      e.stopPropagation();
+      openScratchModal(n.id);
+    });
+    const delBtn = document.createElement('button');
+    delBtn.type = 'button';
+    delBtn.className = 'scratch-note-btn danger';
+    delBtn.textContent = 'Delete';
+    delBtn.addEventListener('click', e => {
       e.stopPropagation();
       if (!confirm('Delete this note?')) return;
       saveScratchNotes(loadScratchNotes().filter(x => x.id !== n.id));
       renderScratchpadList();
     });
+    actions.appendChild(editBtn);
+    actions.appendChild(delBtn);
     row.appendChild(body);
-    row.appendChild(del);
+    row.appendChild(actions);
     list.appendChild(row);
   });
+}
+
+let scratchEditingId = null;
+function openScratchModal(id) {
+  scratchEditingId = id;
+  const n = loadScratchNotes().find(x => x.id === id);
+  if (!n) return;
+  const editor = document.getElementById('modal-scratch-editor');
+  editor.innerHTML = n.text || '';
+  const tagSel = document.getElementById('f-scratch-tag');
+  tagSel.innerHTML = SCRATCH_TAGS.map(t => `<option value="${t.id}">${t.label}</option>`).join('');
+  tagSel.value = n.tag || 'gray';
+  document.getElementById('modal-scratch').classList.add('show');
+  setTimeout(() => editor.focus(), 30);
+}
+function closeScratchModal() { document.getElementById('modal-scratch').classList.remove('show'); scratchEditingId = null; }
+function saveScratchModal() {
+  const editor = document.getElementById('modal-scratch-editor');
+  const text = editor.innerHTML.trim();
+  if (!text || text === '<br>') { alert('Write something first.'); return; }
+  const tag = document.getElementById('f-scratch-tag').value;
+  const notes = loadScratchNotes();
+  const n = notes.find(x => x.id === scratchEditingId);
+  if (n) { n.text = text; n.tag = tag; }
+  saveScratchNotes(notes);
+  closeScratchModal();
+  renderScratchpadList();
 }
 
 function initScratchpad() {
@@ -3178,7 +3584,7 @@ function initScratchpad() {
   const body = document.getElementById('scratchpad-body');
   const clearBtn = document.getElementById('scratchpad-clear-btn');
   const flash = document.getElementById('scratchpad-save-flash');
-  const newTa = document.getElementById('scratchpad-new');
+  const editor = document.getElementById('scratchpad-new-editor');
   const tagSel = document.getElementById('scratchpad-new-tag');
   const addBtn = document.getElementById('scratchpad-add-btn');
 
@@ -3197,14 +3603,13 @@ function initScratchpad() {
 
   addBtn.addEventListener('click', e => {
     e.stopPropagation();
-    const text = newTa.value.trim();
-    if (!text) { alert('Write something first.'); return; }
-    if (text.length > 5000) { alert('Note is too long (max 5000 characters).'); return; }
+    const text = editor.innerHTML.trim();
+    if (!text || text === '<br>') { alert('Write something first.'); return; }
     const tag = tagSel.value || 'gray';
     const note = { id: 'sn_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8), text, tag, createdAt: Date.now() };
     saveScratchNotes([note, ...loadScratchNotes()]);
-    logActivity('note_added', 'Added note: ' + (text.length > 30 ? text.slice(0, 30) + '...' : text));
-    newTa.value = '';
+    logActivity('note_added', 'Added note: ' + (text.length > 30 ? text.replace(/<[^>]*>/g,'').slice(0, 30) + '...' : text.replace(/<[^>]*>/g,'')));
+    editor.innerHTML = '';
     renderScratchpadList();
     flashSaved();
   });
@@ -3222,6 +3627,11 @@ function initScratchpad() {
     renderScratchpadList();
     flashSaved();
   });
+
+  document.getElementById('modal-scratch-cancel').addEventListener('click', closeScratchModal);
+  document.getElementById('modal-scratch-save').addEventListener('click', saveScratchModal);
+  document.getElementById('modal-scratch').addEventListener('click', e => { if (e.target.id === 'modal-scratch') closeScratchModal(); });
+  document.querySelector('#modal-scratch .modal-box').addEventListener('click', e => e.stopPropagation());
 }
 
 /* ──────────────────────────────────────────────
