@@ -3062,7 +3062,12 @@ async function initPinGate() {
   console.log('Stored PIN check:', storedPin ? 'Found' : 'Missing');
 
   if (!storedPin) {
+    console.log('No local PIN. Cloud prefetch result above.');
     showPinGateSetup();
+    if (getSyncConfig()) {
+      const err = document.getElementById('gate-sync-error');
+      if (err) err.textContent = 'Cloud connected. If it found no code, create a new one above.';
+    }
   } else {
     showPinGateUnlock();
     setTimeout(() => document.getElementById('pin-input').focus(), 50);
