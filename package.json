@@ -9,8 +9,16 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@tailwindcss/typography": "^0.5.19",
+    "@tiptap/extension-placeholder": "^3.23.1",
+    "@tiptap/react": "^3.23.1",
+    "@tiptap/starter-kit": "^3.23.1",
+    "date-fns": "^4.1.0",
+    "ical-generator": "^10.2.0",
+    "ical.js": "^2.2.1",
     "lucide-react": "^1.14.0",
     "next": "16.2.6",
+    "node-ical": "^0.26.1",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "zustand": "^5.0.13"

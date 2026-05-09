@@ -1,5 +1,5 @@
 import TaskList from "@/components/tasks/TaskList";
-import { CheckSquare } from "lucide-react";
+import { CheckSquare, ListTodo, Archive } from "lucide-react";
 
 export default function TasksPage() {
   return (
@@ -14,8 +14,28 @@ export default function TasksPage() {
         </div>
       </header>
 
-      <div className="max-w-4xl glass-panel rounded-2xl p-8 min-h-[70vh] shadow-2xl flex flex-col">
-        <TaskList />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col h-[70vh]">
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-green-500"></span>
+            Active
+          </h2>
+          <TaskList category="Active" />
+        </div>
+        <div className="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col h-[70vh]">
+          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
+            <ListTodo size={20} className="text-yellow-500" />
+            Later
+          </h2>
+          <TaskList category="Later" />
+        </div>
+        <div className="glass-panel rounded-2xl p-6 shadow-2xl flex flex-col h-[70vh] opacity-80">
+          <h2 className="text-xl font-bold text-gray-300 mb-6 flex items-center gap-2">
+            <Archive size={20} className="text-gray-500" />
+            Completed
+          </h2>
+          <TaskList category="Completed" />
+        </div>
       </div>
     </div>
   );

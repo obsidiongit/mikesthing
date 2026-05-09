@@ -23,6 +23,16 @@ export interface SyncConfig {
   supabaseAnonKey: string;
   enabled: boolean;
   lastSyncedAt?: string;
+  calendarUrl?: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  description?: string;
+  location?: string;
 }
 
 export interface AppState {
@@ -39,13 +49,22 @@ export interface AppState {
   syncConfig: SyncConfig;
   setSyncConfig: (config: Partial<SyncConfig>) => void;
 
+  // Calendar
+  calendarEvents: CalendarEvent[];
+  setCalendarEvents: (events: CalendarEvent[]) => void;
+
   // Task Data
   tasks: Task[];
   addTask: (task: Omit<Task, 'id' | 'createdAt' | 'updatedAt'>) => void;
   updateTask: (id: string, updates: Partial<Task>) => void;
   deleteTask: (id: string) => void;
   moveTask: (id: string, newCategory: TaskCategory) => void;
-  
+  // Quick Links
+  quickLinks: { id: string; name: string; url: string }[];
+  addQuickLink: (link: { name: string; url: string }) => void;
+  updateQuickLink: (id: string, updates: Partial<{ name: string; url: string }>) => void;
+  removeQuickLink: (id: string) => void;
+
   // Scratchpad
   scratchpadContent: string;
   setScratchpadContent: (content: string) => void;
@@ -86,10 +105,15 @@ export const useStore = create<AppState>()(
         supabaseUrl: '',
         supabaseAnonKey: '',
         enabled: false,
+        calendarUrl: '',
       },
       setSyncConfig: (config) => set((state) => ({ 
         syncConfig: { ...state.syncConfig, ...config } 
       })),
+
+      // Calendar
+      calendarEvents: [],
+      setCalendarEvents: (events) => set({ calendarEvents: events }),
 
       // Tasks
       tasks: [],
@@ -120,6 +144,22 @@ export const useStore = create<AppState>()(
         )
       })),
 
+      // Quick Links
+      quickLinks: [
+        { id: "1", name: "GitHub Repo", url: "https://github.com" },
+        { id: "2", name: "Vercel Dashboard", url: "https://vercel.com" },
+        { id: "3", name: "Figma Designs", url: "https://figma.com" },
+      ],
+      addQuickLink: (link) => set((state) => ({
+        quickLinks: [...state.quickLinks, { ...link, id: crypto.randomUUID() }]
+      })),
+      updateQuickLink: (id, updates) => set((state) => ({
+        quickLinks: state.quickLinks.map(l => l.id === id ? { ...l, ...updates } : l)
+      })),
+      removeQuickLink: (id) => set((state) => ({
+        quickLinks: state.quickLinks.filter(l => l.id !== id)
+      })),
+
       // Scratchpad
       scratchpadContent: '',
       setScratchpadContent: (content) => set({ scratchpadContent: content }),
@@ -135,7 +175,9 @@ export const useStore = create<AppState>()(
         lastAuthenticatedAt: state.lastAuthenticatedAt,
         syncConfig: state.syncConfig, 
         tasks: state.tasks,
-        scratchpadContent: state.scratchpadContent
+        scratchpadContent: state.scratchpadContent,
+        calendarEvents: state.calendarEvents,
+        quickLinks: state.quickLinks,
       }),
     }
   )

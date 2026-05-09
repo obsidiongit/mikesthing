@@ -10,9 +10,13 @@ export default function SettingsPage() {
   const [supabaseUrl, setSupabaseUrl] = useState(syncConfig.supabaseUrl || "");
   const [supabaseAnonKey, setSupabaseAnonKey] = useState(syncConfig.supabaseAnonKey || "");
   const [syncEnabled, setSyncEnabled] = useState(syncConfig.enabled || false);
+  const [calendarUrl, setCalendarUrl] = useState(syncConfig.calendarUrl || "");
   
   const [isSaving, setIsSaving] = useState(false);
   const [pullStatus, setPullStatus] = useState<"idle" | "pulling" | "success" | "error">("idle");
+  const [calSyncStatus, setCalSyncStatus] = useState<"idle" | "syncing" | "success" | "error">("idle");
+  
+  const { setCalendarEvents } = useStore();
 
   const handleSave = () => {
     setIsSaving(true);
@@ -20,6 +24,7 @@ export default function SettingsPage() {
       supabaseUrl,
       supabaseAnonKey,
       enabled: syncEnabled,
+      calendarUrl,
     });
     setTimeout(() => setIsSaving(false), 800);
   };
@@ -59,6 +64,27 @@ export default function SettingsPage() {
       setPullStatus("error");
     } finally {
       setTimeout(() => setPullStatus("idle"), 3000);
+    }
+  };
+
+  const handleSyncCalendar = async () => {
+    if (!calendarUrl) return;
+    setCalSyncStatus("syncing");
+    try {
+      const res = await fetch(`/api/calendar?url=${encodeURIComponent(calendarUrl)}`);
+      if (!res.ok) throw new Error("Failed to sync calendar");
+      const data = await res.json();
+      if (data.events) {
+        setCalendarEvents(data.events);
+        setCalSyncStatus("success");
+      } else {
+        throw new Error("No events found");
+      }
+    } catch (err) {
+      console.error(err);
+      setCalSyncStatus("error");
+    } finally {
+      setTimeout(() => setCalSyncStatus("idle"), 3000);
     }
   };
 
@@ -126,6 +152,36 @@ export default function SettingsPage() {
                 placeholder="eyJh..."
                 className="w-full bg-background border border-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
               />
+            </div>
+
+            {/* iCal URL Input */}
+            <div className="pt-4 border-t border-border">
+              <label className="block text-sm font-medium text-gray-300 mb-1.5 flex items-center gap-2">
+                <LinkIcon size={14} /> iCal Feed URL
+              </label>
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={calendarUrl}
+                  onChange={(e) => setCalendarUrl(e.target.value)}
+                  placeholder="https://calendar.google.com/calendar/ical/.../basic.ics"
+                  className="flex-1 bg-background border border-border rounded-lg px-4 py-2.5 text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors"
+                />
+                <button
+                  onClick={handleSyncCalendar}
+                  disabled={!calendarUrl || calSyncStatus === "syncing"}
+                  className={`px-4 py-2.5 rounded-lg font-medium transition-colors ${
+                    calSyncStatus === "syncing" ? "bg-gray-700 text-gray-400" :
+                    calSyncStatus === "success" ? "bg-green-500/20 text-green-400" :
+                    calSyncStatus === "error" ? "bg-red-500/20 text-red-400" :
+                    "bg-surface-hover text-white hover:bg-gray-700"
+                  }`}
+                >
+                  {calSyncStatus === "syncing" ? "Syncing..." : 
+                   calSyncStatus === "success" ? "Synced" :
+                   calSyncStatus === "error" ? "Error" : "Sync iCal"}
+                </button>
+              </div>
             </div>
 
             <div className="flex items-center justify-between pt-4 border-t border-border mt-6">

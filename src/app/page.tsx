@@ -4,6 +4,8 @@ import Pomodoro from "@/components/widgets/Pomodoro";
 import HabitsTracker from "@/components/widgets/HabitsTracker";
 import GoalsWidget from "@/components/widgets/GoalsWidget";
 import QuickLinks from "@/components/widgets/QuickLinks";
+import UpcomingEventsWidget from "@/components/widgets/UpcomingEventsWidget";
+import { Calendar } from "lucide-react";
 
 export default function Home() {
   return (
@@ -40,6 +42,14 @@ export default function Home() {
             Focus Timer
           </h3>
           <Pomodoro />
+        </div>
+
+        <div className="glass-panel rounded-xl p-5 animate-stagger-2 transition-all duration-300 hover:-translate-y-1">
+          <h3 className="font-semibold mb-3 flex items-center gap-2 text-foreground">
+            <Calendar size={16} className="text-blue-400" />
+            Upcoming Events
+          </h3>
+          <UpcomingEventsWidget />
         </div>
 
         <div className="glass-panel rounded-xl p-5 animate-stagger-2 transition-all duration-300 hover:-translate-y-1">
