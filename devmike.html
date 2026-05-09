@@ -87,7 +87,7 @@
     color: var(--muted);
     margin-bottom: 8px;
   }
-  .pin-card input[type="password"] {
+  .pin-input-field {
     width: 100%;
     font-family: ui-monospace, monospace;
     font-size: 20px;
@@ -258,6 +258,7 @@
     flex-direction: column;
     overflow: hidden;
     min-height: 0;
+    max-height: calc(100vh - 64px); /* Constrain to remaining height */
   }
 
   /* Views */
@@ -1190,7 +1191,7 @@
     <p id="pin-gate-loading" class="pin-loading hidden">Checking cloud…</p>
     <div id="pin-unlock-wrap" class="hidden">
       <label for="pin-input">Access code (4 digits)</label>
-      <input type="password" id="pin-input" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+      <input type="password" id="pin-input" class="pin-input-field" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
       <p class="pin-error" id="pin-error"></p>
       <div class="pin-actions">
         <button type="button" class="btn btn-primary" id="pin-submit">Continue</button>
@@ -1199,9 +1200,9 @@
     <div id="pin-setup-wrap" class="hidden">
       <p class="pin-setup-intro">No access code on this device yet. Choose one — with cloud sync it is stored in your backup so all devices match.</p>
       <label for="pin-setup-a">New code</label>
-      <input type="password" id="pin-setup-a" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+      <input type="password" id="pin-setup-a" class="pin-input-field" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
       <label for="pin-setup-b" style="margin-top:14px">Confirm</label>
-      <input type="password" id="pin-setup-b" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
+      <input type="password" id="pin-setup-b" class="pin-input-field" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="off" placeholder="••••">
       <p class="pin-error" id="pin-setup-error"></p>
       <div class="pin-actions">
         <button type="button" class="btn btn-primary" id="pin-setup-btn">Save &amp; continue</button>
