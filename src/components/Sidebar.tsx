@@ -4,14 +4,14 @@ import SyncManager from './SyncManager';
 
 export default function Sidebar() {
   return (
-    <div className="w-16 md:w-64 h-full bg-surface border-r border-border flex flex-col justify-between transition-all duration-300">
+    <div className="w-16 md:w-64 h-full bg-surface/40 backdrop-blur-xl border-r border-border flex flex-col justify-between transition-all duration-300 z-10">
       <div className="flex flex-col py-6 space-y-4">
         {/* Logo/Brand */}
         <div className="px-4 mb-8 flex items-center justify-center md:justify-start">
-          <div className="w-8 h-8 rounded-md bg-primary text-primary-foreground flex items-center justify-center font-bold text-xl shadow-[0_0_15px_rgba(99,102,241,0.5)]">
+          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 text-white flex items-center justify-center font-bold text-xl shadow-[0_0_20px_rgba(99,102,241,0.4)]">
             M
           </div>
-          <span className="ml-3 hidden md:block font-bold text-lg tracking-wide text-white">Mission Control</span>
+          <span className="ml-3 hidden md:block font-extrabold text-lg tracking-wide text-gradient">Mission Control</span>
         </div>
 
         {/* Navigation */}
@@ -40,7 +40,7 @@ function NavItem({ href, icon, label }: { href: string; icon: React.ReactNode; l
   return (
     <Link
       href={href}
-      className="flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-surface-hover transition-colors group"
+      className="flex items-center p-3 rounded-lg text-gray-400 hover:text-white hover:bg-white/5 transition-all duration-200 hover:translate-x-1 group"
       title={label}
     >
       <div className="flex-shrink-0">{icon}</div>

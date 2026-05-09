@@ -43,9 +43,16 @@ export default function SyncManager() {
     }
   };
 
+  const isInitialMount = useRef(true);
+
   // Debounced auto-sync whenever the payload changes
   useEffect(() => {
     if (!syncConfig.enabled) return;
+
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
 
     if (timeoutRef.current) {
       clearTimeout(timeoutRef.current);

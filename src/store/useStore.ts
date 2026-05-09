@@ -47,6 +47,9 @@ export interface AppState {
   // Scratchpad
   scratchpadContent: string;
   setScratchpadContent: (content: string) => void;
+
+  // System
+  hydrateState: (state: Partial<AppState>) => void;
 }
 
 export const useStore = create<AppState>()(
@@ -108,6 +111,9 @@ export const useStore = create<AppState>()(
       // Scratchpad
       scratchpadContent: '',
       setScratchpadContent: (content) => set({ scratchpadContent: content }),
+
+      // System
+      hydrateState: (newState) => set((state) => ({ ...state, ...newState })),
     }),
     {
       name: 'devmike-storage',
